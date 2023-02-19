@@ -39,7 +39,7 @@
 ![image](https://user-images.githubusercontent.com/84974759/219948839-27324bd9-385d-4283-8e79-791178ed8c51.png)<br>
 
 
-7.最近OpenVINO和TensorRT两个神经网络加速工具（前者用于CPU推理加速，后者用于GPU推理加速）我都完善了一套可以我们使用的代码出来，具体看我的github仓库，yolov5代码在看了<br>
+7.最近OpenVINO和TensorRT两个神经网络加速工具（前者用于CPU推理加速，后者用于GPU推理加速）我都完善了一套可以我们使用的代码出来，具体看我的github仓库<br>
 ![image](https://user-images.githubusercontent.com/84974759/219949135-c8ee88ef-e409-412c-a0bb-38e6d0f07215.png)<br>
 
 
