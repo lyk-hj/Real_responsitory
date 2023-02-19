@@ -41,3 +41,11 @@
 
 7.最近OpenVINO和TensorRT两个神经网络加速工具（前者用于CPU推理加速，后者用于GPU推理加速）我都完善了一套可以我们使用的代码出来，具体看我的github仓库，yolov5代码在看了<br>
 ![image](https://user-images.githubusercontent.com/84974759/219949135-c8ee88ef-e409-412c-a0bb-38e6d0f07215.png)<br>
+
+
+8.把那一大堆singer预测用的代码封装到一个函数里，在armor_track.cpp里调用的时候不用写一大堆，更加简洁；同时Thread.cpp里面跟踪预测那个线程里的全部显示内容我都封装到了Track里面的一个叫show()的函数里了，也是简洁很多，如图：<br>
+![image](https://user-images.githubusercontent.com/84974759/219956108-20922e96-3fb5-4488-8b88-3b92e6768192.png)<br>
+![image](https://user-images.githubusercontent.com/84974759/219956127-8781a5c8-4f83-496a-9208-a5145c267dee.png)<br>
+![image](https://user-images.githubusercontent.com/84974759/219956149-4c64ebdd-0de7-4f33-91fd-02da73804824.png)<br>
+
+
