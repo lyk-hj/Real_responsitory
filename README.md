@@ -49,3 +49,21 @@
 ![image](https://user-images.githubusercontent.com/84974759/219956149-4c64ebdd-0de7-4f33-91fd-02da73804824.png)<br>
 
 
+9.串口接收增加了四元数接收，现在一次需要接收32个字节的数据，四元数的接收用于转为旋转矩阵用于世界坐标系的转换，详见最新的get_Model_new函数，如图：<br>
+![image](https://user-images.githubusercontent.com/84974759/220103873-090b8160-c06d-49ba-b5be-dc31eeb71238.png)<br>
+
+
+10.颜色接收成为过去式，现在颜色的判定用yaml文件写入参数来解决，在保留之前的EumeColor和大多数地方的代码不变下的改变，参数写在detector的yaml里：<br>
+![image](https://user-images.githubusercontent.com/84974759/220104796-0a8c82d0-2ad3-4e14-931d-2197f2546d37.png)<br>
+
+
+11.多线程简化了一些代码的写法，同时避免了一些冗长的代码：<br>
+![image](https://user-images.githubusercontent.com/84974759/220105153-c6175482-3a15-4908-a02e-e93097842c32.png)<br>
+![image](https://user-images.githubusercontent.com/84974759/220105256-cca21c00-2bba-4c26-ae87-04380fd49712.png)<br>
+
+
+
+
+
+
+
