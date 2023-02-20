@@ -21,9 +21,10 @@ void* Kal_predict(void* PARAM);
 
 typedef struct form
 {
-    vector<robot_detection::Armor> armors;
-    float data[4];
-    int mode;
-    int dat_is_get;
-    double tim;
+	int mode;
+	int dat_is_get;
+	float data[3];
+	float quat[4];
+	vector<Armor> armors;
+    chrono_time tim;
 }form;

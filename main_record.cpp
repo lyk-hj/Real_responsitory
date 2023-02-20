@@ -17,9 +17,10 @@ int main()
 {
 //    auto camera_warrper = new Camera;
 //    double time = -1;
-    float data[4] = {0,0,0,28};
+    float data[3] = {0,0,28};
+    float quat[4] = {0,0,0,0};
     robot_state robot;
-    robot.updateData(data,COLOR);
+    robot.updateData(data,quat);
     ArmorDetector autoShoot;
     autoShoot.clone(robot);
     ArmorTracker autoTrack;
@@ -27,7 +28,7 @@ int main()
     std::vector<Armor> autoTargets;
     Eigen::Vector3d predicted_position;
     Mat src;
-    VideoCapture v("../sample/record.avi");
+    VideoCapture v("../sample/Record-blue.avi");
     int lost_count = 0;
 //    if (camera_warrper->init())
 //    {
@@ -60,7 +61,8 @@ int main()
 //                sort(autoTargets.begin(),autoTargets.end(),
 //                     [](Armor &armor1,Armor &armor2){
 //                    return armor1.grade > armor2.grade;});
-                double now_time = (double)getTickCount();
+//                double now_time = (double)getTickCount();
+				auto now_time = std::chrono::high_resolution_clock::now();
 //                src.copyTo(autoTrack.AS._src);
                 if(autoTrack.locateEnemy(src,autoTargets,now_time))
                 {

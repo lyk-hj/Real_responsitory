@@ -23,3 +23,5 @@ height_grade_ratio: 0.2
 grade_standard: 60
 
 thresh_confidence: 0
+
+enemy_color: BLUE

@@ -16,6 +16,7 @@
 using seconds_duration = std::chrono::duration<double>;
 using milliseconds_duration = std::chrono::duration<double,std::milli>;
 using microseconds_duration = std::chrono::duration<double,std::micro>;
+using chrono_time = decltype(std::chrono::high_resolution_clock::now());
 
 //robot basic classes
 enum EnermyColor { RED = 1, BLUE = 2 };
@@ -32,14 +33,15 @@ public:
     float ab_yaw;
     float ab_roll;
     float bullet_speed;
-    int enemy_color;
+    float quaternion[4];
+//    int enemy_color;
 
     robot_state() = default;
 
     void clone(robot_state &robot);
 
-    void updateData(float data[4]);
-    void updateData(float data[4], int color);
+    void updateData(const float *data, const float *quat);
+//    void updateData(float *data, int color);
 };
 
 //}

@@ -3,11 +3,11 @@ project(run)
 
 set(CMAKE_CXX_STANDARD 11)
 if(UNIX)
-#   set(CAM_LIB /lib/libMVSDK.so)
-#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+   set(CAM_LIB /lib/libMVSDK.so)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 #   set(OpenCV_DIR /home/lmx/Opencv454/opencv-4.5.4/build)
 elseif(WIN32)
-    set(CAM_LIB ${PROJECT_SOURCE_DIR}/lib/MVCAMSDK_X64.lib)
+    set(CAM_LIB E:/MindVision/SDK/X64/MVCAMSDK_X64.lib)
     set(OpenCV_DIR E:/opencv-4.5.4/opencv/build/x64/vc16/install/x64/vc16/lib)
 endif()
 
@@ -24,7 +24,7 @@ include_directories(${OpenCV_INCLUDE_DIRS}
 
 FILE(GLOB SRCS "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
-add_executable(run main_record.cpp ${SRCS})
+add_executable(run main.cpp ${SRCS})
 
 target_link_libraries(run ${OpenCV_LIBS} ${CAM_LIB} ${X11_LIBRARIES})
 target_link_libraries(${BIN_NAME} Threads::Threads)

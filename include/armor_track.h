@@ -23,6 +23,9 @@ class ArmorTracker
 public:
     int tracker_state;  // 此时跟踪器的状态
     int tracking_id;  // 跟踪的敌方ID
+	
+	float pitch;
+	float yaw;
 
     Skalman Singer;
 
@@ -36,7 +39,7 @@ public:
 
     bool selectEnemy2(std::vector<Armor> &find_armors, double dt);
     bool estimateEnemy(double dt);
-    bool locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, double time);
+    bool locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, const chrono_time &time);
 private:
 
     Armor enemy_armor;//最终选择的装甲板
@@ -55,9 +58,8 @@ private:
 
     double new_old_threshold; // 新旧坐标的距离阈值
 
-    double t;
-    double pitch;
-    double yaw;
+    bool wait_start;
+    chrono_time t;
 
     cv::Mat _src;
 

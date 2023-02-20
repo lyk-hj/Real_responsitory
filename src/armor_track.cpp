@@ -16,6 +16,7 @@ ArmorTracker::ArmorTracker()
     KF.initial_KF();
 
     locate_target = false;
+    wait_start = true;
     enemy_armor = Armor();
 
     tracker_state = MISSING;
@@ -35,7 +36,7 @@ ArmorTracker::ArmorTracker()
 
 void ArmorTracker::reset()
 {
-    t = -1;
+    wait_start = true;
 
     KF.initial_KF();
     Singer.Reset();
@@ -250,7 +251,7 @@ bool ArmorTracker::estimateEnemy(double dt)
     }
 }
 
-bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, double time)
+bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, const chrono_time &time)
 {
     //!< 先搞清楚电控那边的坐标系是怎么样的(准确的陀螺仪本身定义的xyz在哪个方向，不能是人为定义的)，
     //!< 特别是现在他们统一了c板的安装（佛山的时候理清过，现在忘了）
@@ -288,12 +289,13 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, d
     }
     else
     {
-        if (t == -1)
+        if (wait_start)
         {
             t = time;
+            wait_start = false;
             return false;
         }
-        double dt = (time - t) / (double)cv::getTickFrequency();
+        double dt = seconds_duration (time - t).count();
 //        std::cout<<"dt:"<<dt<<std::endl;
         t = time;
         if(!selectEnemy2(armors,dt))

@@ -9,7 +9,7 @@
 #include <iostream>
 
 #define POINT_DIST(p1,p2) std::sqrt((p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y))
-
+#define COLOR(str) std::strcmp(str.c_str(),"RED") == 0? RED : BLUE
 //namespace robot_detection {
 //灯条结构体
 struct Light : public cv::RotatedRect     //灯条结构体
@@ -71,7 +71,8 @@ public:
     int cnt_count;
 
 private:
-    int binThresh;
+	int binThresh;
+	int enemy_color=0;
 
     //light_judge_condition
     double light_max_angle;

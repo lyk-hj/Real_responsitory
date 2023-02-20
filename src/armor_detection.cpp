@@ -3,8 +3,8 @@
 #define BINARY_SHOW
 //#define DRAW_LIGHTS_CONTOURS
 //#define DRAW_LIGHTS_RRT
-#define SHOW_NUMROI
-//#define DEBUG_DNN_PRINT
+//#define SHOW_NUMROI
+#define DEBUG_DNN_PRINT
 //#define DRAW_ARMORS_RRT
 #define DRAW_FINAL_ARMOR_S_CLASS
 //#define DRAW_FINAL_ARMOR_MAIN
@@ -51,6 +51,8 @@ ArmorDetector::ArmorDetector()
 
     //thresh_confidence
     thresh_confidence = (double)fs["thresh_confidence"];
+	//enemy_color
+    enemy_color = COLOR(((string)fs["enemy_color"]));
 
     fs.release();
 }
