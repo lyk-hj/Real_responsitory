@@ -29,6 +29,22 @@ AngleSolve::AngleSolve()
     fs.release();
 }
 
+Eigen::Matrix3d AngleSolve::quaternionToRotationMatrix()
+{
+    Eigen::Matrix3d R_x;
+    float w=quaternion[0],x=quaternion[1],y=quaternion[2],z=quaternion[3];
+    float module = sqrt(w*w+x*x+y*y+z*z);
+    w /=module;
+    x /=module;
+    y /=module;
+    z /=module;
+    R_x << 1-2*y*y-2*z*z, 2*x*y-2*z*w, 2*x*z+2*y*w,
+        2*x*y+2*z*w, 1-2*x*x-2*z*z, 2*y*z-2*x*w,
+        2*x*z-2*y*w, 2*y*z+2*w*x, 1-2*x*x-2*y*y;
+
+    return R_x;
+}
+
 Eigen::Matrix3d AngleSolve::eulerAnglesToRotationMatrix(Eigen::Vector3d &theta)
 {
     Eigen::Matrix3d R_x;    // 计算旋转矩阵的X分量

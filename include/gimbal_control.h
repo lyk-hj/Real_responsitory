@@ -46,10 +46,13 @@
 		Eigen::Vector3d airResistanceSolve(Eigen::Vector3d &imu_Pos);//consider gravity asn air resistance
 		
 		void yawPitchSolve(Eigen::Vector3d &Pos);
-		
+
+
 		double BulletModel(double &x, float &v, double &angle);
 		
 		double getFlyTime(Eigen::Vector3d &pos);
+
+		Eigen::Matrix3d AngleSolve::quaternionToRotationMatrix();
 		
 		Eigen::Matrix3d eulerAnglesToRotationMatrix(Eigen::Vector3d &theta);
 		
