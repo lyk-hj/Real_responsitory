@@ -49,8 +49,9 @@
 ![image](https://user-images.githubusercontent.com/84974759/219956149-4c64ebdd-0de7-4f33-91fd-02da73804824.png)<br>
 
 
-9.串口接收增加了四元数接收，现在一次需要接收32个字节的数据，四元数的接收用于转为旋转矩阵用于世界坐标系的转换，详见最新的get_Model_new函数，如图：<br>
+9.串口接收增加了四元数接收，现在一次需要接收32个字节的数据，四元数的接收用于转为旋转矩阵用于世界坐标系的转换，详见最新的get_Model_new函数，而四元数转旋转矩阵相关算法看第二张图（已经过验证是对的，即四元数转为的旋转矩阵对应获得的角度是正确的）如图：<br>
 ![image](https://user-images.githubusercontent.com/84974759/220103873-090b8160-c06d-49ba-b5be-dc31eeb71238.png)<br>
+![image](https://user-images.githubusercontent.com/84974759/220571910-13f39d09-7229-4cf6-8506-3e669aac70bd.png)<br>
 
 
 10.颜色接收成为过去式，现在颜色的判定用yaml文件写入参数来解决，在保留之前的EumeColor和大多数地方的代码不变下的改变，参数写在detector的yaml里：<br>
