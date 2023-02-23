@@ -16,7 +16,7 @@ void robot_state::updateData(const float *data, const float *quat)
     ab_yaw = data[1];
 //    ab_roll = data[2];
     bullet_speed = data[3];
-	bullet_speed = 28;
+//	bullet_speed = 28;
 	
 	quaternion[0] = quat[0];
 	quaternion[1] = quat[1];

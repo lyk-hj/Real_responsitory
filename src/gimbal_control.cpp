@@ -42,6 +42,18 @@ Eigen::Matrix3d AngleSolve::quaternionToRotationMatrix()
         2*x*y+2*z*w, 1-2*x*x-2*z*z, 2*y*z-2*x*w,
         2*x*z-2*y*w, 2*y*z+2*w*x, 1-2*x*x-2*y*y;
 
+    float roll = atan2(2*y*z + 2*w*x,1 - 2*x*x - 2*y*y)/CV_PI * 180.0f;
+    float pitch = asin(2*w*y - 2*x*z)/CV_PI*180.0f;
+    float yaw = atan2(2*x*y + 2*w*z, 1 - 2*y*y - 2*z*z)/CV_PI*180.0f;
+
+    std::cout<<"----------[quaternion_euler]-----------"<<std::endl;
+    std::cout<<"[roll:]   |"<<roll<<std::endl;
+    std::cout<<"[pitch:]  |"<<pitch<<std::endl;
+    std::cout<<"[yaw:]    |"<<yaw<<std::endl;
+    std::cout<<"----------[get_from_weifeng_euler]-----------"<<std::endl;
+    std::cout<<"[get_yaw:]   |"<<ab_yaw<<std::endl;
+    std::cout<<"[get_pitch:]   |"<<ab_pitch<<std::endl;
+
     return R_x;
 }
 

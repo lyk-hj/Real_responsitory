@@ -24,7 +24,7 @@ include_directories(${OpenCV_INCLUDE_DIRS}
 
 FILE(GLOB SRCS "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
-add_executable(run main.cpp ${SRCS})
+add_executable(run main_debug.cpp ${SRCS})
 
 target_link_libraries(run ${OpenCV_LIBS} ${CAM_LIB} ${X11_LIBRARIES})
 target_link_libraries(${BIN_NAME} Threads::Threads)

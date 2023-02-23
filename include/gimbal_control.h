@@ -52,7 +52,7 @@
 		
 		double getFlyTime(Eigen::Vector3d &pos);
 
-		Eigen::Matrix3d AngleSolve::quaternionToRotationMatrix();
+		Eigen::Matrix3d quaternionToRotationMatrix();
 		
 		Eigen::Matrix3d eulerAnglesToRotationMatrix(Eigen::Vector3d &theta);
 		
