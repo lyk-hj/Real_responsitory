@@ -41,7 +41,7 @@ Skalman::Skalman()
     _Sk = 0.5*Vk*Vk.transpose();
     Sk = H*P*H.transpose() + R;
     lamda = std::max(1.,_Sk.trace()/Sk.trace());
-    std::cout<<"lamda:"<<lamda<<std::endl;
+//    std::cout<<"lamda:"<<lamda<<std::endl;
 }
 
 void Skalman::Reset()

@@ -55,7 +55,7 @@ struct Armor : public cv::RotatedRect    //装甲板结构体
     int id;  // 装甲板类别
     int grade;
     int type;  // 装甲板类型
-    Eigen::Vector3d imu_position;  // 当前的真实坐标
+    Eigen::Vector3d world_position;  // 当前的真实坐标
     Eigen::Vector3d camera_position;  // 当前的相机坐标
 //    int area;  // 装甲板面积
 };

@@ -23,11 +23,13 @@
 		
 		double fly_time;
 		
+		std::string self_type;
 		
 		Eigen::Matrix<double,3,3> F_EGN;
 		Eigen::Matrix<double,1,5> C_EGN;
 		Eigen::Matrix<double,3,3> RotationMatrix_imu;
 		Eigen::Matrix<double,3,3> RotationMatrix_cam2imu;
+		Eigen::Vector3d center_offset_position;
 		
 		cv::Mat F_MAT;
 		cv::Mat C_MAT;
@@ -46,8 +48,7 @@
 		Eigen::Vector3d airResistanceSolve(Eigen::Vector3d &imu_Pos);//consider gravity asn air resistance
 		
 		void yawPitchSolve(Eigen::Vector3d &Pos);
-
-
+		
 		double BulletModel(double &x, float &v, double &angle);
 		
 		double getFlyTime(Eigen::Vector3d &pos);

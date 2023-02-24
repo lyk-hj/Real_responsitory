@@ -60,6 +60,11 @@ typedef struct
     float2uchar CacheData;
 }ReceiveData;
 
+typedef struct
+{
+	string
+}Device;
+
 
 class SerialPort
 {
@@ -79,6 +84,7 @@ public:
     bool get_Mode1_new(int &mode, float &pitch, float &yaw, float &ball_speed, float* quaternion);
     void TransformData(const VisionData &data); //主要方案
     void send();
+	listPorts
     void closePort();
     void TransformDataFirst(int Xpos, int Ypos, int dis);//方案1
 };

@@ -43,24 +43,25 @@ SerialPort::SerialPort(char const *portpath)
 
 bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, float &ball_speed, int &color)
 {
+    int bytes;
     //!< check whether open serial valid
     char *name = ttyname(fd);
     if (!name) printf("tty is null\n");
     //printf("device:%s\n",name);
 
-    int bytes;
     int result = ioctl(fd, FIONREAD, &bytes);
     if (result == -1)
     {
-        fd = open("/dev/ttyUSB", O_RDWR | O_NOCTTY | O_NDELAY);
-
-        speed = BAUDRATE;
-        databits = 8;
-        stopbits = 1;
-        parity = 'N';
-        initSerialPort();
+//        fd = open("/dev/ttyUSB", O_RDWR | O_NOCTTY | O_NDELAY);
+//
+//        speed = BAUDRATE;
+//        databits = 8;
+//        stopbits = 1;
+//        parity = 'N';
+//        initSerialPort();
         return false;
     }
+    cout<<bytes<<endl;
     if (bytes == 0)
     {
         cout << "缓冲区为空" << endl;
@@ -68,16 +69,18 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
     }
 
     bytes = read(fd, rdata, 44);
-    int i=0;
+    cout<<bytes<<endl;
+	int i=0;
     for(;i<44;i++)
     {
+    	printf("rdata[i]:%x\n",rdata[i]);
         if(rdata[i] == 0xA5)
         {
             if(Verify_CRC8_Check_Sum(rdata+i, 3))
             {
                 mode  = (int)rdata[1+i];
-
-                if(Verify_CRC16_Check_Sum(rdata+i,22))
+				tcflush(fd, TCIFLUSH);
+				if(Verify_CRC16_Check_Sum(rdata+i,22))
                 {
                     //            printf("1111");
                     VisionData demo;
@@ -86,6 +89,7 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
                     demo.pitch_angle.c[2] = rdata[5+i];
                     demo.pitch_angle.c[3] = rdata[6+i];
                     pitch = demo.pitch_angle.f;
+                    cout<<"pitch get"<<endl;
 
                     demo.yaw_angle.c[0] = rdata[7+i];
                     demo.yaw_angle.c[1] = rdata[8+i];
@@ -108,7 +112,6 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
                     color = (int)rdata[19+i];
                     ball_speed = 28.0;
 
-                    tcflush(fd, TCIFLUSH);
                     //          printf("//////port//////\n");
                     //		    printf("pitch :%f\n",pitch);
                     //		    printf("yaw   :%f\n",yaw);
@@ -117,19 +120,18 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
                     //		    printf("speed :%f\n",ball_speed);
                     //          printf("color :%d\n",color);
                     //          printf("////////////////\n");
-                    return true;
+					return true;
                 }
                 else
                 {
                     printf("error:CRC16\n");
-                    tcflush(fd, TCIFLUSH);
                     return false;
                 }
             }
         }
     }
-    printf("error:CRC8 or A5\n");
-    tcflush(fd, TCIFLUSH);
+	tcflush(fd, TCIFLUSH);
+	printf("error:CRC8 or A5\n");
     return false;
 }
 /**
@@ -146,12 +148,12 @@ bool SerialPort::get_Mode1_new(int &mode, float &pitch, float &yaw, float &ball_
     int result = ioctl(fd, FIONREAD, &bytes);
     if (result == -1)
     {
-        fd = open("/dev/ttyUSB", O_RDWR | O_NOCTTY | O_NDELAY);
-        speed = BAUDRATE;
-        databits = 8;
-        stopbits = 1;
-        parity = 'N';
-        initSerialPort();
+//        fd = open("/dev/ttyUSB", O_RDWR | O_NOCTTY | O_NDELAY);
+//        speed = BAUDRATE;
+//        databits = 8;
+//        stopbits = 1;
+//        parity = 'N';
+//        initSerialPort();
         return false;
     }
 
@@ -160,14 +162,14 @@ bool SerialPort::get_Mode1_new(int &mode, float &pitch, float &yaw, float &ball_
         cout << "缓冲区为空" << endl;
         return true;
     }
-    bytes = read(fd, rdata, 64);
-    for(int i=0;i<64;i++)
+    bytes = read(fd, rdata, 66);
+    for(int i=0;i<66;i++)
     {
         if(rdata[i] == 0xA5 && Verify_CRC8_Check_Sum(rdata+i, 3))
         {
             mode  = (int)rdata[1+i];
-
-            if(Verify_CRC16_Check_Sum(rdata+i,32))
+			tcflush(fd, TCIFLUSH);
+            if(Verify_CRC16_Check_Sum(rdata+i,33))
             {
                 ReceiveData demo;
                 demo.CacheData.c[0] = rdata[3+i];
@@ -214,21 +216,13 @@ bool SerialPort::get_Mode1_new(int &mode, float &pitch, float &yaw, float &ball_
 
                 ball_speed = 28.0;
 
-                tcflush(fd, TCIFLUSH);
-                //          printf("//////port//////\n");
-                //		    printf("pitch :%f\n",pitch);
-                //		    printf("yaw   :%f\n",yaw);
-                //		    printf("roll  :%f\n",roll);
-                //          printf("mode  :%x\n",mode);
-                //		    printf("speed :%f\n",ball_speed);
-                //          printf("color :%d\n",color);
-                //          printf("////////////////\n");
+//                printf("get_yaw:%f   |\n",yaw);
+//                printf("get_pitch:%f |\n",pitch);
                 return true;
             }
             else
             {
                 printf("error:CRC16\n");
-                tcflush(fd, TCIFLUSH);
                 return false;
             }
         }

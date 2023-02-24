@@ -26,11 +26,11 @@ public:
 	
 	float pitch;
 	float yaw;
-
-    Skalman Singer;
-
+	
+	Skalman Singer;
+	
     AngleSolve AS;
-
+	
     ArmorTracker();
 
     void reset();
@@ -41,8 +41,7 @@ public:
     bool estimateEnemy(double dt);
     bool locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, const chrono_time &time);
 private:
-
-    Armor enemy_armor;//最终选择的装甲板
+	Armor enemy_armor;//最终选择的装甲板
 
     KalmanFilter KF;
 

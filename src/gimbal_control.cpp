@@ -15,16 +15,20 @@ AngleSolve::AngleSolve()
     fs["big_h"] >> big_h;
     fs["small_w"] >> small_w;
     fs["small_h"] >> small_h;
+    fs["self_type"] >> self_type;
 
 
-    fs["F_MAT"] >> F_MAT;
-    fs["C_MAT"] >> C_MAT;
+    fs[self_type]["F_MAT"] >> F_MAT;
+    fs[self_type]["C_MAT"] >> C_MAT;
     cv::cv2eigen(F_MAT,F_EGN);
     cv::cv2eigen(C_MAT,C_EGN);
 
     cv::Mat temp;
-    fs["RotationMatrix_cam2imu"] >> temp;
+    fs[self_type]["RotationMatrix_cam2imu"] >> temp;
     cv::cv2eigen(temp,RotationMatrix_cam2imu);
+    
+	fs[self_type]["center_offset_position"] >> temp;
+	cv::cv2eigen(temp,center_offset_position);
 
     fs.release();
 }
@@ -33,11 +37,6 @@ Eigen::Matrix3d AngleSolve::quaternionToRotationMatrix()
 {
     Eigen::Matrix3d R_x;
     float w=quaternion[0],x=quaternion[1],y=quaternion[2],z=quaternion[3];
-    float module = sqrt(w*w+x*x+y*y+z*z);
-    w /=module;
-    x /=module;
-    y /=module;
-    z /=module;
     R_x << 1-2*y*y-2*z*z, 2*x*y-2*z*w, 2*x*z+2*y*w,
         2*x*y+2*z*w, 1-2*x*x-2*z*z, 2*y*z-2*x*w,
         2*x*z-2*y*w, 2*y*z+2*w*x, 1-2*x*x-2*y*y;
@@ -51,7 +50,7 @@ Eigen::Matrix3d AngleSolve::quaternionToRotationMatrix()
     std::cout<<"[pitch:]  |"<<pitch<<std::endl;
     std::cout<<"[yaw:]    |"<<yaw<<std::endl;
     std::cout<<"----------[get_from_weifeng_euler]-----------"<<std::endl;
-    std::cout<<"[get_yaw:]   |"<<ab_yaw<<std::endl;
+    std::cout<<"[get_yaw:]     |"<<ab_yaw<<std::endl;
     std::cout<<"[get_pitch:]   |"<<ab_pitch<<std::endl;
 
     return R_x;
@@ -105,19 +104,16 @@ Eigen::Matrix3d AngleSolve::eulerAnglesToRotationMatrix2(Eigen::Vector3d &theta)
 
 Eigen::Vector3d AngleSolve::cam2imu(Vector3d &cam_pos)
 {
-
     //imu:roll pitch yaw
     Vector3d pos_tmp;
-    pos_tmp = {cam_pos[2],cam_pos[0],-cam_pos[1]};
-//    pos_tmp = {cam_pos[2],-cam_pos[0],-cam_pos[1]};
-//    std::cout<<"tmp_pos: "<<pos_tmp<<std::endl;
-
-    //
-    //here should take an experiment to make sure 1 or 2
-//    std::cout<<"imu_r"<<imu_r<<std::endl;
+    if (self_type == "omni_infantry")
+	{
+		pos_tmp = {cam_pos[2],cam_pos[0],cam_pos[1]};
+	}
 
     Vector3d imu_pos;
     imu_pos = RotationMatrix_imu * pos_tmp;
+    imu_pos +=center_offset_position;
 //    std::cout<<"imu_pos: "<<imu_pos<<std::endl;
     return imu_pos;
 }
@@ -127,7 +123,8 @@ Eigen::Vector3d AngleSolve::imu2cam(Vector3d &imu_pos)
     Vector3d tmp_pos;
     Vector3d cam_pos;
     tmp_pos = RotationMatrix_imu.inverse()*imu_pos;
-    cam_pos = {tmp_pos[1],-tmp_pos[2],tmp_pos[0]};
+    cam_pos = {tmp_pos[1],tmp_pos[2],tmp_pos[0]};
+    cam_pos -=center_offset_position;
     return cam_pos;
 }
 
@@ -166,7 +163,7 @@ Eigen::Vector3d AngleSolve::gravitySolve(Vector3d &Pos)
 Eigen::Vector3d AngleSolve::airResistanceSolve(Vector3d &imu_Pos)
 {
     //at world coordinate system
-    auto y = (double)imu_Pos(2,0);
+    auto y = -(double)imu_Pos(2,0);
     auto x = (double)sqrt(imu_Pos(0,0)*imu_Pos(0,0)+imu_Pos(1,0)*imu_Pos(1,0));
     double y_temp, y_actual, dy;
     double a;
@@ -184,7 +181,7 @@ Eigen::Vector3d AngleSolve::airResistanceSolve(Vector3d &imu_Pos)
 //        printf("iteration num %d: angle %f,temp target y:%f,err of y:%f\n",i+1,a*180/CV_PI,y_temp,dy);
     }
 
-    return Vector3d(imu_Pos(0,0),imu_Pos(1,0),y_temp);
+    return Vector3d(imu_Pos(0,0),imu_Pos(1,0),-y_temp);
 }
 
 double AngleSolve::BulletModel(double &x, float &v, double &angle) { //x:m,v:m/s,angle:rad
@@ -277,5 +274,6 @@ Eigen::Vector3d AngleSolve::pixel2imu(Armor &armor)
     Eigen::Vector3d imu_pos = cam2imu(armor.camera_position);
     return imu_pos;
 }
+
 
 //}

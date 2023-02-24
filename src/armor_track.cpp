@@ -67,9 +67,9 @@ bool ArmorTracker::initial(std::vector<Armor> &find_armors)
     tracking_id = enemy_armor.id;
 
     KF.initial_KF();
-    enemy_armor.imu_position = AS.pixel2imu(enemy_armor);
-    KF.setXPost(enemy_armor.imu_position);
-    Singer.setXpos(enemy_armor.imu_position.head(2));
+    enemy_armor.world_position = AS.pixel2imu(enemy_armor);
+    KF.setXPost(enemy_armor.world_position);
+    Singer.setXpos(enemy_armor.world_position.head(2));
 //    std::cout<<"track_initial"<<std::endl;
     return true;
 }
@@ -85,7 +85,7 @@ bool ArmorTracker::selectEnemy2(std::vector<Armor> &find_armors, double dt)
     Eigen::Vector3d predictedE =  Eigen::Vector3d(predicted_enemy.head(3));
     cv::Point2f preTrack = AS.imu2pixel(predictedE);
     cv::circle(AS._src,preTrack,5,cv::Scalar(0,0,255),-1);
-    cv::imshow("_src",AS._src);
+//    cv::imshow("_src",AS._src);
 #endif
 
     Armor matched_armor;
@@ -96,9 +96,9 @@ bool ArmorTracker::selectEnemy2(std::vector<Armor> &find_armors, double dt)
         double min_position_diff = DBL_MAX;
         for(auto & armor : find_armors)
         {
-            armor.imu_position= AS.pixel2imu(armor);
+            armor.world_position= AS.pixel2imu(armor);
             Eigen::Vector3d pre = predicted_enemy.head(3);
-            double position_diff = (pre - armor.imu_position).norm();
+            double position_diff = (pre - armor.world_position).norm();
             if (position_diff < min_position_diff) {
                 min_position_diff = position_diff;
                 matched_armor = armor;
@@ -107,7 +107,7 @@ bool ArmorTracker::selectEnemy2(std::vector<Armor> &find_armors, double dt)
 //        std::cout<<"min_position_diff:"<<min_position_diff<<std::endl;
         if (min_position_diff < new_old_threshold && matched_armor.id == tracking_id) {
             matched = true;
-            predicted_enemy = KF.update(matched_armor.imu_position);
+            predicted_enemy = KF.update(matched_armor.world_position);
         }
         else
         {
@@ -115,11 +115,10 @@ bool ArmorTracker::selectEnemy2(std::vector<Armor> &find_armors, double dt)
             for (auto & armor : find_armors) {
                 if (armor.id == tracking_id) {
                     matched = true;
-//                    armor.imu_position = AS.pixel2imu(armor);
                     KF.initial_KF();
                     Eigen::Matrix<double,6,1> pos_speed;
-                    pos_speed << armor.imu_position, predicted_enemy.tail(3);
-                    KF.setPosAndSpeed(armor.imu_position,predicted_enemy.tail(3));
+                    pos_speed << armor.world_position, predicted_enemy.tail(3);
+                    KF.setPosAndSpeed(armor.world_position, predicted_enemy.tail(3));
                     predicted_enemy = pos_speed;
                     matched_armor = armor;
                     break;
@@ -179,12 +178,12 @@ bool ArmorTracker::selectEnemy2(std::vector<Armor> &find_armors, double dt)
         reset();
         return false;
     }
-    KF.setPosAndSpeed(matched_armor.imu_position,predicted_enemy.tail(3));
+    KF.setPosAndSpeed(matched_armor.world_position, predicted_enemy.tail(3));
 
     if(tracker_state == LOSING)
     {
-        enemy_armor.imu_position = predicted_enemy.head(3);
-        KF.setPosAndSpeed(enemy_armor.imu_position,predicted_enemy.tail(3));
+        enemy_armor.world_position = predicted_enemy.head(3);
+        KF.setPosAndSpeed(enemy_armor.world_position, predicted_enemy.tail(3));
     }
 
     return true;
@@ -197,13 +196,13 @@ bool ArmorTracker::estimateEnemy(double dt)
     if(tracker_state == TRACKING || tracker_state == LOSING)
     {
         // enemy_armor get real information to predicted by singer
-        enemy_armor.imu_position = AS.pixel2imu(enemy_armor);
-        std::cout<<"[target_distance]:  "<<enemy_armor.imu_position(0,0)<<std::endl;
+        enemy_armor.world_position = AS.pixel2imu(enemy_armor);
+        std::cout << "[target_distance]:  " << enemy_armor.world_position(0, 0) << std::endl;
 
-        double fly_time = AS.getFlyTime(enemy_armor.imu_position);
+        double fly_time = AS.getFlyTime(enemy_armor.world_position);
         ////////////////Singer predictor//////////////////////////////
         if(!Singer.SingerPrediction(dt,fly_time,
-                                    enemy_armor.imu_position,
+                                    enemy_armor.world_position,
                                     predicted_position))
         {
             return false;
@@ -215,19 +214,18 @@ bool ArmorTracker::estimateEnemy(double dt)
 //        std::cout<<"pixelPos"<<pixelPos<<std::endl;
 		circle(AS._src,enemy_armor.center,5,cv::Scalar(255,0,0),-1);
 		circle(AS._src,pixelPos,5,cv::Scalar(0,255,255),-1);
-        cv::imshow("_src",AS._src);
-        //        if(tracker_state == LOSING)cv::waitKey(0);
+//        cv::imshow("_src",AS._src);
 #endif
 		return true;
     }
     else if (tracker_state == DETECTING)
     {
-        enemy_armor.imu_position = AS.pixel2imu(enemy_armor);
-        std::cout << "[target_distance]:  "<<enemy_armor.imu_position(0,0)<<std::endl;
-        double fly_time = AS.getFlyTime(enemy_armor.imu_position);
+        enemy_armor.world_position = AS.pixel2imu(enemy_armor);
+        std::cout << "[target_distance]:  " << enemy_armor.world_position(0, 0) << std::endl;
+        double fly_time = AS.getFlyTime(enemy_armor.world_position);
         ////////////////Singer predictor//////////////////////////////
         if(!Singer.SingerPrediction(dt,fly_time,
-                                    enemy_armor.imu_position,
+                                    enemy_armor.world_position,
                                     predicted_position))
         {
             return false;
@@ -238,8 +236,7 @@ bool ArmorTracker::estimateEnemy(double dt)
 //        std::cout<<"pixelPos"<<pixelPos<<std::endl;
 		circle(AS._src,enemy_armor.center,5,cv::Scalar(255,0,0),-1);
         circle(AS._src,pixelPos,5,cv::Scalar(0,0,255),-1);
-        cv::imshow("_src",AS._src);
-//        cv::waitKey(0);
+//        cv::imshow("_src",AS._src);
 #endif
         locate_target = false;
         return false;
@@ -262,12 +259,10 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
     //!< 拿到四元数用来转旋转矩阵作用到云台转轴中心的坐标系，得到我们diaski的世界坐标系的点
 	AS._src = src;
 	_src=src;
-//	std::cout<<"AS.ab_roll:"<<AS.ab_roll<<std::endl;
-//	std::cout<<"AS.ab_yaw:"<<AS.ab_yaw<<std::endl;
-//	std::cout<<"AS.ab_pitch:"<<AS.ab_pitch<<std::endl;
-//	std::cout<<"AS.bullet_speed:"<<AS.bullet_speed<<std::endl;
-	Eigen::Vector3d euler_imu = {(double)AS.ab_roll/180.0*CV_PI,(double)AS.ab_pitch/180.0*CV_PI,(double)AS.ab_yaw/180.0*CV_PI};  // xyz-rpy
-	AS.RotationMatrix_imu = AS.eulerAnglesToRotationMatrix2(euler_imu);
+	AS.RotationMatrix_imu = AS.quaternionToRotationMatrix();
+	
+//	Eigen::Vector3d euler_imu = {(double)AS.ab_roll/180.0*CV_PI,(double)AS.ab_pitch/180.0*CV_PI,(double)AS.ab_yaw/180.0*CV_PI};  // xyz-rpy
+//	AS.RotationMatrix_imu = AS.eulerAnglesToRotationMatrix2(euler_imu);
     if(!locate_target)
     {
         if(initial(armors))
@@ -278,13 +273,13 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
         {
             locate_target = false;
         }
-        Eigen::Vector3d gun_offset = {0,0,0};   // m
-        gun_offset +=enemy_armor.camera_position;
+	
+//		bullet_point = AS.airResistanceSolve(enemy_armor.world_position);
 
-        bullet_point = AS.airResistanceSolve(gun_offset);
-
-        pitch = -atan2(bullet_point[1],bullet_point[2])/CV_PI*180 + AS.ab_pitch;
-        yaw   = -atan2(bullet_point[0],bullet_point[2])/CV_PI*180 + AS.ab_yaw;
+//        pitch = -atan2(bullet_point[1],bullet_point[2])/CV_PI*180 + AS.ab_pitch;
+//        yaw   = -atan2(bullet_point[0],bullet_point[2])/CV_PI*180 + AS.ab_yaw;
+		pitch = AS.ab_pitch;
+        yaw = AS.ab_yaw;
         return false;
     }
     else
@@ -296,7 +291,7 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
             return false;
         }
         double dt = seconds_duration (time - t).count();
-//        std::cout<<"dt:"<<dt<<std::endl;
+//        std::cout<<"[dt:]"<<dt<<std::endl;
         t = time;
         if(!selectEnemy2(armors,dt))
         {
@@ -308,9 +303,15 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
             return false;
         }
 
-        Eigen::Vector3d gun_offset = {0,0,0};   // m
-        gun_offset +=enemy_armor.camera_position;
-        bullet_point = AS.airResistanceSolve(gun_offset);
+//        Eigen::Vector3d gun_offset = {0,0,0};   // m
+//        gun_offset +=enemy_armor.camera_position;
+//        bullet_point = AS.airResistanceSolve(gun_offset);
+	
+//		bullet_point = AS.airResistanceSolve(enemy_armor.world_position);
+		
+		bullet_point = AS.imu2cam(bullet_point);
+		pitch = -atan2(bullet_point[1],bullet_point[2])/CV_PI*180 + AS.ab_pitch;
+		yaw   = -atan2(bullet_point[0],bullet_point[2])/CV_PI*180 + AS.ab_yaw;
 
         return true;
     }

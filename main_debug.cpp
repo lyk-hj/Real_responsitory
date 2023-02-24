@@ -8,7 +8,15 @@
 #include "serialport.h"
 using namespace cv;
 //using namespace robot_detection;
-SerialPort port("/dev/ttyUSB0");
+extern SerialPort port;
+pthread_mutex_t mutex_new;
+pthread_cond_t cond_new;
+pthread_mutex_t mutex_ka;
+pthread_cond_t cond_ka;
+
+bool is_ka = false;
+bool is_start = false;
+bool is_continue = true;
 
 //#define COLOR RED
 
@@ -20,7 +28,7 @@ int main()
 //    robot.updateData(data);
     ArmorDetector autoShoot;
 //    autoShoot.clone(robot);
-    ArmorTracker autoTrack;
+    ArmorTracker Track;
 //    autoTrack.AS.clone(robot);
     Skalman Singer;
     std::vector<Armor> autoTargets;
@@ -30,19 +38,32 @@ int main()
     int mode_temp;
     float lin[3];
     float quat[4];
-    if (camera_warper->init())
-    {
+    float speed;
+    int color;
+    VisionData vdata;
+	port.initSerialPort();
+    /*if (camera_warper->init())
+    {*/
         while(true)
         {
-            if(camera_warper->read_frame_rgb())
+            /*if(camera_warper->read_frame_rgb())
             {
                 //            	std::cout<<"init success"<<std::endl;
                 src = camera_warper->src.clone();
                 camera_warper->release_data();
-            }
+            }*/
+            //!< 在每次角度变化的时候就不会缓冲区为空，bytes为22
+//            bool dataGet = port.get_Mode1(mode_temp,lin[0],lin[1],lin[2],speed,color);
             bool dataGet = port.get_Mode1_new(mode_temp, lin[0], lin[1], lin[2],quat);
-            autoTrack.AS.updateData(lin,quat);
-            Eigen::Matrix3d quatRx = autoTrack.AS.quaternionToRotationMatrix();
+			if(dataGet)std::cout<<"get"<<std::endl;
+			else std::cout<<"can't get"<<std::endl;
+			std::cout<<lin[0]<<std::endl;
+			
+            Track.AS.updateData(lin,quat);
+            Eigen::Matrix3d quatRx = Track.AS.quaternionToRotationMatrix();
+			vdata = { Track.AS.ab_pitch, Track.AS.ab_yaw, 0x31 };
+            port.TransformData(vdata);
+            port.send();
 
 
 //            autoTargets = autoShoot.autoAim(src);
@@ -68,14 +89,14 @@ int main()
 //                lost_count++;
 //                printf("----------------no target---------------\n");
 //            }
-            imshow("src",src);
+            /*imshow("src",src);
             if (waitKey(1) == 27)
             {
                 camera_warper->~Camera();
                 break;
-            }
+            }*/
         }
-    }
+    //}
     printf("lost_count:%d\n",lost_count);
     return 0;
 }

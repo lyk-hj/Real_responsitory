@@ -7,7 +7,7 @@ using namespace cv;
 //using namespace robot_detection;
 using namespace std;
 
-SerialPort port("/dev/ttyUSB0");
+SerialPort port("/dev/ttyUSB1");
 
 
 //one2two
@@ -36,7 +36,7 @@ void* Build_Src(void* PARAM)
 //    auto start = chrono::high_resolution_clock::now();
 	if (camera_warper->init())
 	{
-		printf("1-real\n");
+		//printf("1-real\n");
 		while (is_continue && (waitKey(1) != 27))
 		{
             // chrono
@@ -181,16 +181,16 @@ void* Kal_predict(void* PARAM)
 				if (Track.locateEnemy(src_copy,armors,time_temp))
 				{
                     vdata = { Track.pitch, Track.yaw, 0x31 };
-					printf("--------------Thread End----------\n");
+//					printf("--------------Thread End----------\n");
 					
 				}
 				else
 				{
                      //    原数据，无自瞄
-						vdata = { Track.AS.ab_pitch, Track.AS.ab_yaw, 0x31 };
+						vdata = { Track.AS.ab_pitch, Track.AS.ab_yaw, 0x32 };
 						port.TransformData(vdata);
 						port.send();
-					printf("--------------Thread End----------\n");
+//					printf("--------------Thread End----------\n");
 				}
                 Track.show();
               	port.TransformData(vdata);
