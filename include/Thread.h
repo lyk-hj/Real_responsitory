@@ -5,6 +5,9 @@
 #include <thread>
 #include <mutex>
 #include <string>
+#include <cstdio>
+#include <opencv2/opencv.hpp>
+#include <chrono>
 
 extern pthread_mutex_t mutex_new; 
 extern pthread_cond_t cond_new; 

@@ -201,7 +201,7 @@ Eigen::Matrix<double,6,1> Skalman::correct(Eigen::Matrix<double,2,1> &measure)
     _Sk = (lamda*Vk*Vk.transpose())/(1+lamda);
     Sk = H*P*H.transpose() + R;
     lamda = std::max(1.,_Sk.trace()/Sk.trace());
-    std::cout<<"lamda:"<<lamda<<std::endl;
+//    std::cout<<"lamda:"<<lamda<<std::endl;
     P = lamda*((F * P * F.transpose()) + W);
     K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
     Xk = Xk_1 + K * (Zk - H * Xk_1);

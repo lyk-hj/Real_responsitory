@@ -1,14 +1,10 @@
 #include "Thread.h"
-#include <cstdio>
-#include <opencv2/opencv.hpp>
-#include <chrono>
 
 using namespace cv;
 //using namespace robot_detection;
 using namespace std;
 
-SerialPort port("/dev/ttyUSB1");
-
+SerialPort port;
 
 //one2two
 form _send_data;
@@ -17,9 +13,6 @@ Mat src;
 //two2three
 form send_data;
 Mat ka_src;
-
-
-
 
 void* Build_Src(void* PARAM)
 {
@@ -30,7 +23,6 @@ void* Build_Src(void* PARAM)
 	chrono_time time_temp;
 	Mat get_src;
     auto camera_warper = new Camera;
-	port.initSerialPort();
 	printf("camera_open-\n");
     // chrono
 //    auto start = chrono::high_resolution_clock::now();
@@ -113,6 +105,7 @@ void* Armor_Kal(void* PARAM)
 		pthread_mutex_unlock(&mutex_new);
         if(color_get)
         {
+        	printf("[mode_temp]:    |%x\n",mode_temp);
             if (mode_temp == 0x21)
             {
                 Targets = Detect.autoAim(src_copy);
@@ -125,13 +118,6 @@ void* Armor_Kal(void* PARAM)
 							 {Detect.quaternion[0],Detect.quaternion[1],Detect.quaternion[2],Detect.quaternion[3]},
 							 Targets,
 							 time_temp};
-//                send_data.armors = Targets;
-//                send_data.data[0] = Detect.ab_pitch;
-//                send_data.data[1] = Detect.ab_yaw;
-//                send_data.data[2] = Detect.bullet_speed;
-//                send_data.mode = mode_temp;
-//                send_data.dat_is_get = color_get;
-//                send_data.tim = time_temp;
                 src_copy.copyTo(ka_src);
 				is_ka = true;
 				pthread_cond_signal(&cond_ka);
@@ -181,8 +167,6 @@ void* Kal_predict(void* PARAM)
 				if (Track.locateEnemy(src_copy,armors,time_temp))
 				{
                     vdata = { Track.pitch, Track.yaw, 0x31 };
-//					printf("--------------Thread End----------\n");
-					
 				}
 				else
 				{
@@ -190,7 +174,6 @@ void* Kal_predict(void* PARAM)
 						vdata = { Track.AS.ab_pitch, Track.AS.ab_yaw, 0x32 };
 						port.TransformData(vdata);
 						port.send();
-//					printf("--------------Thread End----------\n");
 				}
                 Track.show();
               	port.TransformData(vdata);

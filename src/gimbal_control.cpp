@@ -24,8 +24,6 @@ AngleSolve::AngleSolve()
     cv::cv2eigen(C_MAT,C_EGN);
 
     cv::Mat temp;
-    fs[self_type]["RotationMatrix_cam2imu"] >> temp;
-    cv::cv2eigen(temp,RotationMatrix_cam2imu);
     
 	fs[self_type]["center_offset_position"] >> temp;
 	cv::cv2eigen(temp,center_offset_position);
@@ -108,12 +106,12 @@ Eigen::Vector3d AngleSolve::cam2imu(Vector3d &cam_pos)
     Vector3d pos_tmp;
     if (self_type == "omni_infantry")
 	{
-		pos_tmp = {cam_pos[2],cam_pos[0],cam_pos[1]};
+		pos_tmp = {cam_pos[0],cam_pos[2],-cam_pos[1]};
 	}
-
-    Vector3d imu_pos;
-    imu_pos = RotationMatrix_imu * pos_tmp;
-    imu_pos +=center_offset_position;
+	
+	pos_tmp +=center_offset_position;
+	Vector3d imu_pos;
+	imu_pos = RotationMatrix_imu * pos_tmp;
 //    std::cout<<"imu_pos: "<<imu_pos<<std::endl;
     return imu_pos;
 }
@@ -123,7 +121,10 @@ Eigen::Vector3d AngleSolve::imu2cam(Vector3d &imu_pos)
     Vector3d tmp_pos;
     Vector3d cam_pos;
     tmp_pos = RotationMatrix_imu.inverse()*imu_pos;
-    cam_pos = {tmp_pos[1],tmp_pos[2],tmp_pos[0]};
+	if (self_type == "omni_infantry")
+	{
+		cam_pos = {tmp_pos[0],-tmp_pos[2],tmp_pos[1]};
+	}
     cam_pos -=center_offset_position;
     return cam_pos;
 }
@@ -163,7 +164,7 @@ Eigen::Vector3d AngleSolve::gravitySolve(Vector3d &Pos)
 Eigen::Vector3d AngleSolve::airResistanceSolve(Vector3d &imu_Pos)
 {
     //at world coordinate system
-    auto y = -(double)imu_Pos(2,0);
+    auto y = (double)imu_Pos(2,0);
     auto x = (double)sqrt(imu_Pos(0,0)*imu_Pos(0,0)+imu_Pos(1,0)*imu_Pos(1,0));
     double y_temp, y_actual, dy;
     double a;
@@ -181,7 +182,7 @@ Eigen::Vector3d AngleSolve::airResistanceSolve(Vector3d &imu_Pos)
 //        printf("iteration num %d: angle %f,temp target y:%f,err of y:%f\n",i+1,a*180/CV_PI,y_temp,dy);
     }
 
-    return Vector3d(imu_Pos(0,0),imu_Pos(1,0),-y_temp);
+    return Vector3d(imu_Pos(0,0),imu_Pos(1,0),y_temp);
 }
 
 double AngleSolve::BulletModel(double &x, float &v, double &angle) { //x:m,v:m/s,angle:rad

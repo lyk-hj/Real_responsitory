@@ -14,7 +14,6 @@ endif()
 find_package(OpenCV 4.5 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(X11 REQUIRED)
-#find_package(Threads REQUIRED)
 
 
 include_directories(${OpenCV_INCLUDE_DIRS}
@@ -29,7 +28,6 @@ add_definitions(-std=c++11)
 
 
 target_link_libraries(run ${OpenCV_LIBS} ${CAM_LIB} ${X11_LIBRARIES})
-#target_link_libraries(${BIN_NAME} Threads::Threads)
 
 
 
@@ -44,4 +42,3 @@ message(STATUS "    version: ${Eigen3_VERSION}")
 #message(STATUS "    libraries: ${Eigen3_DIR}")
 message(STATUS "    include path: ${EIGEN3_INCLUDE_DIRS}")
 
-message(STATUS "    include Thread path: ${Threads_INCLUDE_DIRS}")
