@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <iostream>
-#include "CRC_Check.h"
+#include "crc_check.h"
 using namespace std;
 
 

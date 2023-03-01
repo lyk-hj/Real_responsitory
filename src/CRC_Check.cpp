@@ -1,7 +1,7 @@
 ﻿//CRC for serial
 //The code in this file is from the rule of Robomaster
 
-#include "CRC_Check.h"
+#include "crc_check.h"
 #include <stdio.h>
 
 //crc8 generator polynomial:G(x)=x8+x5+x4+1
@@ -49,7 +49,6 @@ unsigned int Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLen
 	if ((pchMessage == 0) || (dwLength <= 2)) return 0;
 
 	ucExpected = Get_CRC8_Check_Sum(pchMessage, dwLength - 1, CRC8_INIT);
-	//printf("local crc8:%x\n",(int)ucExpected);
 	return (ucExpected == pchMessage[dwLength - 1]);
 }
 /*
@@ -110,18 +109,15 @@ const uint16_t wCRC_Table[256] =
 uint16_t Get_CRC16_Check_Sum(uint8_t *pchMessage, uint32_t dwLength, uint16_t wCRC)
 {
 	uint8_t chData;
-
 	if (pchMessage == NULL)
 	{
 		return 0xFFFF;
 	}
-
 	while (dwLength--)
 	{
 		chData = *pchMessage++;
 		(wCRC) = ((uint16_t)(wCRC) >> 8) ^ wCRC_Table[((uint16_t)(wCRC) ^ (uint16_t)(chData)) & 0x00ff];
 	}
-
 	return wCRC;
 }
 /*

@@ -43,6 +43,7 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
 	
 	bytes = read(fd, rdata, 44);
 	cout<<bytes<<endl;
+	tcflush(fd, TCIFLUSH);
 	int i=0;
 	for(;i<44;i++)
 	{
@@ -52,7 +53,6 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
 			if(Verify_CRC8_Check_Sum(rdata+i, 3))
 			{
 				mode  = (int)rdata[1+i];
-				tcflush(fd, TCIFLUSH);
 				if(Verify_CRC16_Check_Sum(rdata+i,22))
 				{
 					//            printf("1111");
@@ -103,7 +103,6 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
 			}
 		}
 	}
-	tcflush(fd, TCIFLUSH);
 	printf("error:CRC8 or A5\n");
 	return false;
 }
@@ -133,7 +132,7 @@ bool SerialPort::get_Mode1_new(int &mode, float &pitch, float &yaw, float &ball_
 		cout << "缓冲区为空" << endl;
 		return true;
 	}
-	bytes = read(fd, rdata, RECEIVE_LENGTH*2);
+	read(fd, rdata, RECEIVE_LENGTH*2);
 	for(int i=0;i<RECEIVE_LENGTH*2;i++)
 	{
 		if(rdata[i] == 0xA5 && Verify_CRC8_Check_Sum(rdata+i, 3))
@@ -222,7 +221,7 @@ bool SerialPort::initSerialPort()
 	stopbits = 1;
 	parity = 'N';
 	fd = open(UART_DEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
-	
+	fd = open(UART_DEVICE, O_RDWR | O_NOCTTY);
 	if (fd == -1)
 	{
 		perror(UART_DEVICE);

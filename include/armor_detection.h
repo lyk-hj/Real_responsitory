@@ -5,7 +5,7 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "robot_status.h"
-#include "number_DNN.h"
+#include "number_dnn.h"
 #include <iostream>
 
 #define POINT_DIST(p1,p2) std::sqrt((p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y))

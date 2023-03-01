@@ -69,7 +69,7 @@ bool ArmorTracker::initial(std::vector<Armor> &find_armors)
     KF.initial_KF();
     enemy_armor.world_position = AS.pixel2imu(enemy_armor);
     KF.setXPost(enemy_armor.world_position);
-    Singer.setXpos(enemy_armor.world_position.head(2));
+    Singer.setXpos({enemy_armor.world_position(0,0),enemy_armor.world_position(2,0)});
 //    std::cout<<"track_initial"<<std::endl;
     return true;
 }
@@ -238,12 +238,12 @@ bool ArmorTracker::estimateEnemy(double dt)
         circle(AS._src,pixelPos,5,cv::Scalar(0,0,255),-1);
 //        cv::imshow("_src",AS._src);
 #endif
-        locate_target = false;
+//        locate_target = false;
         return false;
     }
     else
     {
-        locate_target = false;
+//        locate_target = false;
         return false;
     }
 }

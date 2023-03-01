@@ -1,4 +1,4 @@
-#include "Thread.h"
+#include "thread.h"
 
 using namespace cv;
 //using namespace robot_detection;
