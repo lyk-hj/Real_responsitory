@@ -1,6 +1,6 @@
 #include "armor_detection.h"
 
-#define BINARY_SHOW
+//#define BINARY_SHOW
 //#define DRAW_LIGHTS_CONTOURS
 //#define DRAW_LIGHTS_RRT
 #define SHOW_NUMROI
@@ -394,22 +394,22 @@ vector<Armor> ArmorDetector::autoAim(const cv::Mat &src)
     setImage(src);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = seconds_duration(end-start).count();
-    printf("set_time:%lf\n",duration);
+//    printf("set_time:%lf\n",duration);
     start = std::chrono::high_resolution_clock::now();
     findLights();
     end = std::chrono::high_resolution_clock::now();
     duration = seconds_duration(end-start).count();
-    printf("light_time:%lf\n",duration);
+//    printf("light_time:%lf\n",duration);
     start = std::chrono::high_resolution_clock::now();
     matchLights();
     end = std::chrono::high_resolution_clock::now();
     duration = seconds_duration(end-start).count();
-    printf("match_time:%lf\n",duration);
+//    printf("match_time:%lf\n",duration);
     start = std::chrono::high_resolution_clock::now();
     chooseTarget();
     end = std::chrono::high_resolution_clock::now();
     duration = seconds_duration(end-start).count();
-    printf("choose_time:%lf\n",duration);
+//    printf("choose_time:%lf\n",duration);
 
 #ifdef DRAW_FINAL_ARMOR_MAIN
     Point2f vertice_armor[4];

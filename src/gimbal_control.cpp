@@ -108,7 +108,10 @@ Eigen::Vector3d AngleSolve::cam2imu(Vector3d &cam_pos)
 	{
 		pos_tmp = {cam_pos[0],cam_pos[2],-cam_pos[1]};
 	}
-	
+    else if (self_type == "hero")
+	{
+		pos_tmp = {cam_pos[0],cam_pos[2],-cam_pos[1]};
+	}
 	pos_tmp +=center_offset_position;
 	Vector3d imu_pos;
 	imu_pos = RotationMatrix_imu * pos_tmp;
@@ -121,11 +124,15 @@ Eigen::Vector3d AngleSolve::imu2cam(Vector3d &imu_pos)
     Vector3d tmp_pos;
     Vector3d cam_pos;
     tmp_pos = RotationMatrix_imu.inverse()*imu_pos;
+	tmp_pos -=center_offset_position;
 	if (self_type == "omni_infantry")
 	{
 		cam_pos = {tmp_pos[0],-tmp_pos[2],tmp_pos[1]};
 	}
-    cam_pos -=center_offset_position;
+	else if(self_type == "hero")
+	{
+		cam_pos = {tmp_pos[0],-tmp_pos[2],tmp_pos[1]};
+	}
     return cam_pos;
 }
 

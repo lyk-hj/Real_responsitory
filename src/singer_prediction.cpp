@@ -8,8 +8,8 @@ Skalman::Skalman()
          0,0,0,1,0,0;
 
     //init R
-    R << 0.00005, 0,
-         0, 0.00005;
+    R << 5e-4, 0,
+         0, 5e-4;
 
     //init Xk_1
     Xk_1 << 0,0.1,0,
@@ -222,8 +222,9 @@ bool Skalman::SingerPrediction(const double &dt,
                       Eigen::Vector3d &predicted_position)
 {
 	double x1 = imu_position(0,0);
-	double x2 = imu_position(2,0);
-    Eigen::Matrix<double,2,1> measure(round(x1*1000)/1000,
+//	double x2 = imu_position(2,0);
+	double x2 = imu_position(1,0);
+	Eigen::Matrix<double,2,1> measure(round(x1*1000)/1000,
                                       round(x2*1000)/1000);
     double all_time = SHOOT_DELAY + fly_time;
     //! state transition
@@ -236,19 +237,22 @@ bool Skalman::SingerPrediction(const double &dt,
     //std::cout<<"result:"<<predicted_result<<std::endl;
     //! filter for result, inhibit infinite change
     double predicted_x = predicted_result(0,0);
-    double predicted_y = imu_position(1,0);//no need to calculate with filter
-    double predicted_z = predicted_result(3,0);
+    double predicted_y = predicted_result(3,0);//no need to calculate with filter
+    double predicted_z = imu_position(2,0);
     predicted_x = filter(last_x1,predicted_x,x1);
-    predicted_z = filter(last_x2,predicted_z,x2);
+    predicted_y = filter(last_x2,predicted_y,x2);
     last_x1 = predicted_x;
-    last_x2 = predicted_z;
+    last_x2 = predicted_y;
     
     predicted_position << predicted_x,predicted_y,predicted_z;
 	
-	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 3){
-        return false;
+	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 2){
+		std::cout<<"singer prediction false!!!"<<std::endl;
+		predicted_position = imu_position;
+        return true;
     }
-    return true;
+//	predicted_position = imu_position;
+	return true;
 }
 
 double Skalman::filter(const double &last, const double &current, const double &origin)

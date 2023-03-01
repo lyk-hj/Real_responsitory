@@ -211,10 +211,12 @@ bool ArmorTracker::estimateEnemy(double dt)
         bullet_point = AS.airResistanceSolve(predicted_position);
 #ifdef SHOW_SINGER_PREDICT
         cv::Point2f pixelPos = AS.imu2pixel(bullet_point);
-//        std::cout<<"pixelPos"<<pixelPos<<std::endl;
 		circle(AS._src,enemy_armor.center,5,cv::Scalar(255,0,0),-1);
 		circle(AS._src,pixelPos,5,cv::Scalar(0,255,255),-1);
-//        cv::imshow("_src",AS._src);
+//		for (int i=0;i<4;i++)
+//		{
+//			line(_src, vertice_lights[i], vertice_lights[(i + 1) % 4], CV_RGB(0, 255, 255),2,cv::LINE_8);
+//		}
 #endif
 		return true;
     }
@@ -233,17 +235,13 @@ bool ArmorTracker::estimateEnemy(double dt)
         ////////////////Singer predictor//////////////////////////////
 #ifdef SHOW_SINGER_PREDICT
         cv::Point2f pixelPos = AS.imu2pixel(bullet_point);
-//        std::cout<<"pixelPos"<<pixelPos<<std::endl;
 		circle(AS._src,enemy_armor.center,5,cv::Scalar(255,0,0),-1);
         circle(AS._src,pixelPos,5,cv::Scalar(0,0,255),-1);
-//        cv::imshow("_src",AS._src);
 #endif
-//        locate_target = false;
         return false;
     }
     else
     {
-//        locate_target = false;
         return false;
     }
 }
@@ -260,9 +258,6 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
 	AS._src = src;
 	_src=src;
 	AS.RotationMatrix_imu = AS.quaternionToRotationMatrix();
-	
-//	Eigen::Vector3d euler_imu = {(double)AS.ab_roll/180.0*CV_PI,(double)AS.ab_pitch/180.0*CV_PI,(double)AS.ab_yaw/180.0*CV_PI};  // xyz-rpy
-//	AS.RotationMatrix_imu = AS.eulerAnglesToRotationMatrix2(euler_imu);
     if(!locate_target)
     {
         if(initial(armors))
@@ -273,11 +268,6 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
         {
             locate_target = false;
         }
-	
-//		bullet_point = AS.airResistanceSolve(enemy_armor.world_position);
-
-//        pitch = -atan2(bullet_point[1],bullet_point[2])/CV_PI*180 + AS.ab_pitch;
-//        yaw   = -atan2(bullet_point[0],bullet_point[2])/CV_PI*180 + AS.ab_yaw;
 		pitch = AS.ab_pitch;
         yaw = AS.ab_yaw;
         return false;
@@ -291,28 +281,23 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
             return false;
         }
         double dt = seconds_duration (time - t).count();
-//        std::cout<<"[dt:]"<<dt<<std::endl;
         t = time;
         if(!selectEnemy2(armors,dt))
         {
             return false;
         }
-
+        
         if(!estimateEnemy(dt))
         {
             return false;
         }
-
-//        Eigen::Vector3d gun_offset = {0,0,0};   // m
-//        gun_offset +=enemy_armor.camera_position;
-//        bullet_point = AS.airResistanceSolve(gun_offset);
-	
-//		bullet_point = AS.airResistanceSolve(enemy_armor.world_position);
 		
-		bullet_point = AS.imu2cam(bullet_point);
-		pitch = -atan2(bullet_point[1],bullet_point[2])/CV_PI*180 + AS.ab_pitch;
-		yaw   = -atan2(bullet_point[0],bullet_point[2])/CV_PI*180 + AS.ab_yaw;
-
+//		bullet_point = AS.imu2cam(bullet_point);
+//		pitch = static_cast<int>((-atan2(bullet_point[1],bullet_point[2])/CV_PI*180 + AS.ab_pitch));
+//		yaw   = -atan2(bullet_point[0],bullet_point[2])/CV_PI*180 + AS.ab_yaw;
+		pitch = static_cast<int>(atan2(bullet_point[2],bullet_point[1])/CV_PI*180);
+        yaw = -atan2(bullet_point[0],bullet_point[1])/CV_PI*180;
+//		round(x2*1000)/1000);
         return true;
     }
 }
@@ -322,14 +307,17 @@ void ArmorTracker::show()
     cv::putText(_src,"PITCH    : "+std::to_string(pitch),cv::Point2f(0,60),cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 0),1,3);
     cv::putText(_src,"YAW      : "+std::to_string(yaw),cv::Point2f(0,90),cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 0),1,3);
     cv::putText(_src,"DISTANCE : "+std::to_string(enemy_armor.camera_position.norm())+"m",cv::Point2f(0,30),cv::FONT_HERSHEY_COMPLEX,1,cv::Scalar(255,255,0),1,3);
-    cv::Point2f vertice_lights[4];
+    cv::putText(_src,"PREDICT_X:"+std::to_string(predicted_position(0,0)),cv::Point2f(0,_src.rows-90),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(255,255,0),1,3);
+	cv::putText(_src,"PREDICT_Y:"+std::to_string(predicted_position(1,0)),cv::Point2f(0,_src.rows-60),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(255,255,0),1,3);
+	cv::putText(_src,"PREDICT_Z:"+std::to_string(predicted_position(2,0)),cv::Point2f(0,_src.rows-30),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(255,255,0),1,3);
+	cv::Point2f vertice_lights[4];
     enemy_armor.points(vertice_lights);
     for (int i = 0; i < 4; i++) {
         line(_src, vertice_lights[i], vertice_lights[(i + 1) % 4], CV_RGB(0, 255, 255),2,cv::LINE_8);
     }
     std::string information = std::to_string(enemy_armor.id) + ":" + std::to_string(enemy_armor.confidence*100) + "%";
     //        putText(final_armors_src,ff,finalArmors[i].center,FONT_HERSHEY_COMPLEX, 1.0, Scalar(12, 23, 200), 1, 8);
-    putText(_src, information,enemy_armor.armor_pt4[3],cv::FONT_HERSHEY_COMPLEX,2,cv::Scalar(255,0,255),1,3);
+    putText(_src, information,enemy_armor.armor_pt4[3],cv::FONT_HERSHEY_SIMPLEX,2,cv::Scalar(255,0,255),1,3);
 
     imshow("final_result",_src);
 

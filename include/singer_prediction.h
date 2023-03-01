@@ -6,15 +6,15 @@
 #include "robot_status.h"
 #include <cmath>
 
-#define TANH2(x) (exp(2*x)-2*exp(-2*x))/(exp(2*x)+2*exp(-2*x))
-#define TANH_HALF(x) (exp(0.5*x)-exp(-0.5*x))/(exp(0.5*x)+exp(-0.5*x))
+#define TANH2(x) (exp(2.5*x)-exp(-2.5*x))/(exp(2.5*x)+exp(-2.5*x))
+#define TANH_HALF(x) (exp(0.8*x)-exp(-0.8*x))/(exp(0.8*x)+exp(-0.8*x))
 
 //二维Singer模型
 class Skalman
 {
-    double alefa = 1.0/20.0;//目标机动频率
-    double Sigmaq = 0.1;//目标加速度标准差，Singer模型假设目标加速度符合均值为零的高斯分布
-    double initT = 0.03;//用来初始化初始协方差矩阵的采样时间间隔（估算出来的）
+    double alefa = 1.0/30.0;//目标机动频率
+    double Sigmaq = 0.01;//目标加速度标准差，Singer模型假设目标加速度符合均值为零的高斯分布
+    double initT = 0.01;//用来初始化初始协方差矩阵的采样时间间隔（估算出来的）
     double axHold = 30;//x方向的加速度调整阈值
     double ayHold = 30;//y方向的加速度调整阈值
     double lamda;//渐消因子，减小滤波发散问题

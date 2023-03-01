@@ -43,7 +43,6 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
 	
 	bytes = read(fd, rdata, 44);
 	cout<<bytes<<endl;
-	tcflush(fd, TCIFLUSH);
 	int i=0;
 	for(;i<44;i++)
 	{
@@ -53,6 +52,7 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
 			if(Verify_CRC8_Check_Sum(rdata+i, 3))
 			{
 				mode  = (int)rdata[1+i];
+				tcflush(fd, TCIFLUSH);
 				if(Verify_CRC16_Check_Sum(rdata+i,22))
 				{
 					//            printf("1111");
@@ -103,6 +103,7 @@ bool SerialPort::get_Mode1(int &mode, float &pitch, float &yaw, float &roll, flo
 			}
 		}
 	}
+	tcflush(fd, TCIFLUSH);
 	printf("error:CRC8 or A5\n");
 	return false;
 }

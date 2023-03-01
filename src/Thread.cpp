@@ -167,6 +167,7 @@ void* Kal_predict(void* PARAM)
 				if (Track.locateEnemy(src_copy,armors,time_temp))
 				{
                     vdata = { Track.pitch, Track.yaw, 0x31 };
+					Track.show();
 				}
 				else
 				{
@@ -175,7 +176,6 @@ void* Kal_predict(void* PARAM)
 						port.TransformData(vdata);
 						port.send();
 				}
-                Track.show();
               	port.TransformData(vdata);
 				port.send();
 			}
