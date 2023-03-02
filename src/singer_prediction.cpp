@@ -250,7 +250,6 @@ bool Skalman::SingerPrediction(const double &dt,
     predicted_position = predicted_xyz;
 	
 	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 2){
-		std::cout<<"singer prediction false!!!"<<std::endl;
 		predicted_position = imu_position;
         return false;
     }

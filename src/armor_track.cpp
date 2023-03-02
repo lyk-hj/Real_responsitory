@@ -282,8 +282,9 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
             return false;
         }
         
-		pitch = static_cast<int>(atan2(bullet_point[2],bullet_point[1])/CV_PI*180);
-        yaw = -atan2(bullet_point[0],bullet_point[1])/CV_PI*180;
+//		pitch = static_cast<int>(atan2(bullet_point[2],bullet_point[1])/CV_PI*180);
+		pitch = round(atan2(bullet_point[2],bullet_point[1])/CV_PI*180 * 100)/100;
+		yaw = -atan2(bullet_point[0],bullet_point[1])/CV_PI*180;
         return true;
     }
 }
@@ -304,8 +305,21 @@ void ArmorTracker::show()
     std::string information = std::to_string(enemy_armor.id) + ":" + std::to_string(enemy_armor.confidence*100) + "%";
     //        putText(final_armors_src,ff,finalArmors[i].center,FONT_HERSHEY_COMPLEX, 1.0, Scalar(12, 23, 200), 1, 8);
     putText(_src, information,enemy_armor.armor_pt4[3],cv::FONT_HERSHEY_SIMPLEX,2,cv::Scalar(255,0,255),1,3);
-
-    imshow("final_result",_src);
+	
+	// 用预测位置为中心点，选择的装甲板画框
+	cv::Point2f armor_singer_center = AS.imu2pixel(predicted_position);
+	cv::RotatedRect armor_singer = cv::RotatedRect(armor_singer_center,
+												   cv::Size2f(enemy_armor.size.width,enemy_armor.size.height),
+												   enemy_armor.angle);
+	
+	cv::Point2f vertice_armor_singer[4];
+	armor_singer.points(vertice_armor_singer);
+	for (int m = 0; m < 4; ++m)
+	{
+		line(_src, vertice_armor_singer[m], vertice_armor_singer[(m + 1) % 4], CV_RGB(255, 255, 0),2,cv::LINE_8);
+	}
+	
+	imshow("final_result",_src);
 
 }
 

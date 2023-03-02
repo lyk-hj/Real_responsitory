@@ -31,4 +31,4 @@ typedef struct form
 	float quat[4];
 	std::vector<Armor> armors;
     chrono_time tim;
-}form;
+}form;//线程之间的数据交换结构体

@@ -6,7 +6,7 @@ small_w: 0.135
 small_h: 0.057
 buff_w: 0
 buff_h: 0
-self_type: hero
+self_type: omni_infantry
 
 omni_infantry:
   F_MAT: !!opencv-matrix
@@ -25,7 +25,7 @@ omni_infantry:
     rows: 3
     cols: 1
     dt: d
-    data: [ 0 , 0 , 0 ]
+    data: [ 0 , 0.125 , -0.02 ]
 
 hero:
   F_MAT: !!opencv-matrix
@@ -44,5 +44,5 @@ hero:
     rows: 3
     cols: 1
     dt: d
-    data: [ -0.078 , 0.26 , 0 ]
+    data: [ -0.078 , 0.26 , 0.0205 ]
 #595 6mm

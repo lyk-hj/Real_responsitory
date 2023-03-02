@@ -7,7 +7,7 @@
 #include <cmath>
 
 #define TANH2(x) (exp(2.5*x)-exp(-2.5*x))/(exp(2.5*x)+exp(-2.5*x))
-#define TANH_HALF(x) (exp(0.8*x)-exp(-0.8*x))/(exp(0.8*x)+exp(-0.8*x))
+#define TANH_HALF(x) (exp(1.1*x)-exp(-1.1*x))/(exp(1.1*x)+exp(-1.1*x))
 
 //二维Singer模型
 class Skalman

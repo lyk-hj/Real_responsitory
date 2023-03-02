@@ -214,14 +214,15 @@ int SerialDevice::ReadUntil2(uint8_t *buf, uint8_t end1, uint8_t end2, uint8_t m
 				if (*p == end2) {
 					flag = 0;
 //           std::cout<<"Read a msg:" <<std::endl;
+					tcflush(serial_fd_, TCIFLUSH);
 					return 1;
 				}
 			}
 			p++;
 			i++;
 			if (i >= max_len) {
-				
 				flag = 0;
+				tcflush(serial_fd_, TCIFLUSH);
 				return 0;
 			}
 		}
