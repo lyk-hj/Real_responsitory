@@ -58,7 +58,7 @@ int main()
             //!< 主要原因就是视觉这边只有接受程序的话，接受速率太快了导致中间很多帧收不到东西
 //            bool dataGet = port.get_Mode1(mode_temp,lin[0],lin[1],lin[2],speed,color);
 //            bool dataGet = port.get_Mode1_new(mode_temp, lin[0], lin[1], lin[2],quat);
-			serial.RecvThread();
+			serial.ReceiverMain();
 //			if(dataGet)std::cout<<"get"<<std::endl;
 //			else std::cout<<"can't get"<<std::endl;
 //			std::cout<<lin[0]<<std::endl;

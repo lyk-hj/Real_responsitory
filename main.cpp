@@ -1,8 +1,6 @@
 #include "armor_detection.h"
 #include "gimbal_control.h"
 #include <opencv2/core/cvstd.hpp>
-#include "crc_check.h"
-#include"serialport.h"
 #include<X11/Xlib.h>
 #include"thread.h"
 

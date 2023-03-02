@@ -40,7 +40,7 @@ typedef struct
 typedef struct
 {
   uint16_t id;
-  uint16_t shoot_sta;
+  uint16_t mode;
   float pitch=0;
   float yaw=0;
   float roll=0;

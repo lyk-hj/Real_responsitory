@@ -1,7 +1,8 @@
 #include "camera.h"
 #include "armor_track.h"
 #include <opencv2/core/cvstd.hpp>
-#include "serialport.h"
+//#include "serialport.h"
+#include "serial_main.h"
 #include <thread>
 #include <mutex>
 #include <string>
@@ -28,6 +29,6 @@ typedef struct form
 	int dat_is_get;
 	float data[3];
 	float quat[4];
-	vector<Armor> armors;
+	std::vector<Armor> armors;
     chrono_time tim;
 }form;

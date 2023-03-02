@@ -6,6 +6,7 @@
 #include "crc.h"
 #include<iostream>
 #include <thread>
+#include <vector>
 
 class SerialMain {
 public:
@@ -13,13 +14,11 @@ public:
 	
 	~SerialMain() = default;
 	
-	
-	void robot_ctrl_callback();
-//  private:
+	void SenderMain(const std::vector<double> &vdata);
 	
 	bool CommInit();
 	
-	void RecvThread();
+	bool ReceiverMain();
 	
 	void SearchFrameSOF(uint8_t *frame, uint16_t total_len);
 	
@@ -27,6 +26,7 @@ public:
 	
 	uint16_t SenderPackSolve(uint8_t *data, uint16_t data_length,
 							 uint16_t cmd_id, uint8_t *send_buf);
+	vision_t vision_msg_;
 
 private:
 	
@@ -46,8 +46,6 @@ private:
 	 */
 	
 	robot_ctrl_info_t robot_ctrl;
-	vision_t vision_msg_;
-	
 };
 //}
 
