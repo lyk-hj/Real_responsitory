@@ -1,5 +1,5 @@
 # Real_responsitory
-寒假修改主要如下：<br>
+迭代修改主要如下：<br>
 1.armor_detection 的数字识别那部分的结构改了很多，数字识别速度会更快，只算数字识别dnn部署推理网络部分只需要0.2毫秒左右<br>
 ![image](https://user-images.githubusercontent.com/84974759/219947253-0c37e9e1-d8e7-4cca-ab0f-c888c783c64b.png)<br>
 ![image](https://user-images.githubusercontent.com/84974759/219947269-b91f131d-13e6-4f4d-9c41-995f7ee4398f.png)<br>
@@ -43,24 +43,29 @@
 ![image](https://user-images.githubusercontent.com/84974759/219949135-c8ee88ef-e409-412c-a0bb-38e6d0f07215.png)<br>
 
 
-8.把那一大堆singer预测用的代码封装到一个函数里，在armor_track.cpp里调用的时候不用写一大堆，更加简洁；同时Thread.cpp里面跟踪预测那个线程里的全部显示内容我都封装到了Track里面的一个叫show()的函数里了，也是简洁很多，如图：<br>
-![image](https://user-images.githubusercontent.com/84974759/219956108-20922e96-3fb5-4488-8b88-3b92e6768192.png)<br>
-![image](https://user-images.githubusercontent.com/84974759/219956127-8781a5c8-4f83-496a-9208-a5145c267dee.png)<br>
-![image](https://user-images.githubusercontent.com/84974759/219956149-4c64ebdd-0de7-4f33-91fd-02da73804824.png)<br>
-
-
-9.串口接收增加了四元数接收，现在一次需要接收32个字节的数据，四元数的接收用于转为旋转矩阵用于世界坐标系的转换，详见最新的get_Model_new函数，而四元数转旋转矩阵相关算法看第二张图（已经过验证是对的，即四元数转为的旋转矩阵对应获得的角度是正确的）如图：<br>
+8.串口接收增加了四元数接收，现在一次需要接收32个字节的数据，四元数的接收用于转为旋转矩阵用于世界坐标系的转换，详见最新的get_Model_new函数，而四元数转旋转矩阵相关算法看第二张图（已经过验证是对的，即四元数转为的旋转矩阵对应获得的角度是正确的）如图：<br>
 ![image](https://user-images.githubusercontent.com/84974759/220103873-090b8160-c06d-49ba-b5be-dc31eeb71238.png)<br>
 ![image](https://user-images.githubusercontent.com/84974759/220571910-13f39d09-7229-4cf6-8506-3e669aac70bd.png)<br>
 
 
-10.颜色接收成为过去式，现在颜色的判定用yaml文件写入参数来解决，在保留之前的EumeColor和大多数地方的代码不变下的改变，参数写在detector的yaml里：<br>
+9.颜色接收成为过去式，现在颜色的判定用yaml文件写入参数来解决，在保留之前的EumeColor和大多数地方的代码不变下的改变，参数写在detector的yaml里：<br>
 ![image](https://user-images.githubusercontent.com/84974759/220104796-0a8c82d0-2ad3-4e14-931d-2197f2546d37.png)<br>
 
 
-11.多线程简化了一些代码的写法，同时避免了一些冗长的代码：<br>
-![image](https://user-images.githubusercontent.com/84974759/220105153-c6175482-3a15-4908-a02e-e93097842c32.png)<br>
-![image](https://user-images.githubusercontent.com/84974759/220105256-cca21c00-2bba-4c26-ae87-04380fd49712.png)<br>
+10.Singer模型新增滤波算法，防止Singer算出的预测值过于离谱，且防止抖动，滤波表达式灵感来源于tanh激活函数<br>
+![image](https://user-images.githubusercontent.com/84974759/222332122-b0f02749-1274-454e-9e06-668c3fa03517.png)<br>
+
+
+11.坐标系变换最后不需要转到camera坐标系来算角度，在world坐标系下算出角度，这样可以保证给电控的转角是对于云台转轴中心的，而不是对于相机转轴中心的<br>
+![image](https://user-images.githubusercontent.com/84974759/222332503-3b313749-dd4a-496b-9e25-2062b6eb2a1e.png)<br>
+
+
+12.串口传输使用ttyACM通讯设备，可以不用usb转ttl，用c板上的虚拟串口，接线使用microusb线，不用易断不稳定的杜邦线，而且新的串口收发的内存对齐，压包数据的做法很大程度减少CRC错误率，！注：ttyACM begin之前的版本是都不包含ttyACM功能的版本，ttyACM begin及之后的版本才包含ttyACM功能，新增的ttyACM相关代码部分文件为serial_device.cpp/.h，serial_main.cpp/.h，protocol.h，具体调用ttyACM的方式参考ttyACM begin那一版本的main_debug.cpp未注释部分。<br>
+
+
+
+
+
 
 
 
