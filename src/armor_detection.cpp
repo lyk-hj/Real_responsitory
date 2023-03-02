@@ -7,7 +7,7 @@
 //#define DEBUG_DNN_PRINT
 //#define DRAW_ARMORS_RRT
 //#define DRAW_FINAL_ARMOR_S_CLASS
-//#define DRAW_FINAL_ARMOR_MAIN
+//#define SHOW_TIME
 
 using namespace cv;
 using namespace std;
@@ -101,7 +101,6 @@ bool ArmorDetector::isLight(Light& light, vector<Point> &cnt)
     //灯条角度条件
     bool angle_ok = fabs(90.0 - light.angle) < light_max_angle;
     // cout<<"angle: "<<light.angle<<endl;
-    // angle_ok = true;
 
     //限制面积条件
     bool area_limit_ok = contourArea(cnt) < light_max_area;
@@ -160,10 +159,6 @@ void ArmorDetector::findLights()
                 // std::cout<<sum_r<<"           "<<sum_b<<std::endl;
                 // Sum of red pixels > sum of blue pixels ?
                 light.lightColor = sum_r > sum_b ? RED : BLUE;
-
-                //enermy_color ==  BLUE;
-                //cout<<"enermy_color  ==  "<<enermy_color<<endl;
-                //cout<<"light.lightColor  ==  "<<light.lightColor<<endl;
 
                 // 颜色不符合电控发的就不放入
 
@@ -390,36 +385,33 @@ vector<Armor> ArmorDetector::autoAim(const cv::Mat &src)
     if(!candidateLights.empty())candidateLights.clear();
 
     //do autoaim task
+#ifdef SHOW_TIME
     auto start = std::chrono::high_resolution_clock::now();
     setImage(src);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = seconds_duration(end-start).count();
-//    printf("set_time:%lf\n",duration);
+    printf("set_time:%lf\n",duration);
     start = std::chrono::high_resolution_clock::now();
     findLights();
     end = std::chrono::high_resolution_clock::now();
     duration = seconds_duration(end-start).count();
-//    printf("light_time:%lf\n",duration);
+    printf("light_time:%lf\n",duration);
     start = std::chrono::high_resolution_clock::now();
     matchLights();
     end = std::chrono::high_resolution_clock::now();
     duration = seconds_duration(end-start).count();
-//    printf("match_time:%lf\n",duration);
+    printf("match_time:%lf\n",duration);
     start = std::chrono::high_resolution_clock::now();
     chooseTarget();
     end = std::chrono::high_resolution_clock::now();
     duration = seconds_duration(end-start).count();
-//    printf("choose_time:%lf\n",duration);
-
-#ifdef DRAW_FINAL_ARMOR_MAIN
-    Point2f vertice_armor[4];
-    finalArmor.points(vertice_armor);
-    for (int i = 0; i < 4; i++) {
-        line(showSrc, vertice_armor[i], vertice_armor[(i + 1) % 4], CV_RGB(0, 255, 0));
-    }
-    imshow("showSrc", showSrc);
-#endif //DRAW_FINAL_ARMOR_MAIN
-
+    printf("choose_time:%lf\n",duration);
+#else
+	setImage(src);
+	findLights();
+	matchLights();
+	chooseTarget();
+#endif
 
     return finalArmors;
 }
@@ -454,13 +446,16 @@ void ArmorDetector::detectNum(Armor& armor)
 
     // Get ROI
     numDst = numDst(cv::Rect(cv::Point((warp_width - roi_size.width) / 2, 0), roi_size));
-
+#ifdef SHOW_TIME
     auto start = std::chrono::high_resolution_clock::now();
     dnn_detect(numDst, armor);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = seconds_duration(end-start).count();
     printf("dnn_time:%lf\n",duration);
-    putText(showSrc, to_string(duration),Point(10,100),2,3,Scalar(0,0,255));
+	putText(showSrc, to_string(duration),Point(10,100),2,3,Scalar(0,0,255));
+#else
+	dnn_detect(numDst, armor);
+#endif
 #ifdef SHOW_NUMROI
     if ((armor.id!=0)&&(armor.confidence > thresh_confidence))
     {

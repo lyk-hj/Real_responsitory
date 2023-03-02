@@ -113,7 +113,7 @@ private:
     std::vector<Light> candidateLights; // 筛选的灯条
     std::vector<Armor> candidateArmors; // 筛选的装甲板
     std::vector<Armor> finalArmors;
-    Armor finalArmor;  // 最终装甲板
+    Armor finalArmor;  // 最终装甲板,已弃用
 
     DNN_detect dnnDetect;
 

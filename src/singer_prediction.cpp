@@ -207,12 +207,6 @@ Eigen::Matrix<double,6,1> Skalman::correct(const Eigen::Matrix<double,2,1> &meas
     K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
     Xk = Xk_1 + K * (Zk - H * Xk_1);
     P = (Eigen::Matrix<double, 6, 6>::Identity() - K * H) * P;
-    //        if((fabs(Xk(2,0) - Xk_1(2,0)) > axHold) ||
-    //            (fabs(Xk(5,0) - Xk_1(5,0)) > ayHold))
-    //        {
-    //            Reset(measure);
-    //        }
-    //        std::cout<<"correct_Data:"<<Xk_1<<"-----------------------------"<<std::endl;
     return Xk_1;
 }
 
@@ -221,9 +215,12 @@ bool Skalman::SingerPrediction(const double &dt,
                       const Eigen::Matrix<double,3,1> &imu_position,
                       Eigen::Vector3d &predicted_position)
 {
-	double x1 = imu_position(0,0);
-//	double x2 = imu_position(2,0);
-	double x2 = imu_position(1,0);
+	//mean of predicting 0 index and 1 index value, the value of index 2 is constant
+	int predict_x1=0,predict_x2=1,constant_x=2;
+	
+	double x1 = imu_position(predict_x1,0);
+	double x2 = imu_position(predict_x2,0);
+	
 	Eigen::Matrix<double,2,1> measure(round(x1*1000)/1000,
                                       round(x2*1000)/1000);
     double all_time = SHOOT_DELAY + fly_time;
@@ -236,20 +233,26 @@ bool Skalman::SingerPrediction(const double &dt,
     Eigen::Matrix<double,6,1> predicted_result = predict(true);
     //std::cout<<"result:"<<predicted_result<<std::endl;
     //! filter for result, inhibit infinite change
-    double predicted_x = predicted_result(0,0);
-    double predicted_y = predicted_result(3,0);//no need to calculate with filter
-    double predicted_z = imu_position(2,0);
-    predicted_x = filter(last_x1,predicted_x,x1);
-    predicted_y = filter(last_x2,predicted_y,x2);
-    last_x1 = predicted_x;
-    last_x2 = predicted_y;
+//    double predicted_x = predicted_result(0,0);
+//    double predicted_y = predicted_result(3,0);//no need to calculate with filter
+//    double predicted_z = imu_position(2,0);
+    predicted_xyz[predict_x1] = filter(last_x[0],predicted_result(0,0),x1);
+    predicted_xyz[predict_x2] = filter(last_x[1],predicted_result(3,0),x2);
+    predicted_xyz[constant_x] = imu_position(constant_x,0);
+//    predicted_x = filter(last_x1,predicted_x,x1);
+//    predicted_y = filter(last_x2,predicted_y,x2);
+//    last_x1 = predicted_xyz[predict_x1];
+//    last_x2 = predicted_xyz[predict_x2];
+	last_x[0] = predicted_xyz[predict_x1];
+	last_x[1] = predicted_xyz[predict_x2];
     
-    predicted_position << predicted_x,predicted_y,predicted_z;
+//    predicted_position << predicted_x,predicted_y,predicted_z;
+    predicted_position = predicted_xyz;
 	
 	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 2){
 		std::cout<<"singer prediction false!!!"<<std::endl;
 		predicted_position = imu_position;
-        return true;
+        return false;
     }
 //	predicted_position = imu_position;
 	return true;

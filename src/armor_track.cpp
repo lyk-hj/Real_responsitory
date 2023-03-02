@@ -3,7 +3,6 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
 
-//#define DRAW_MATCH_ARMOR
 #define SHOW_TRACK_PREDICT
 #define SHOW_SINGER_PREDICT
 
@@ -128,15 +127,6 @@ bool ArmorTracker::selectEnemy2(std::vector<Armor> &find_armors, double dt)
     }
     if (matched)
     {
-#ifdef DRAW_MATCH_ARMOR
-        cv::Mat m_a = AS._src.clone();
-        cv::circle(m_a,matched_armor.center,matched_armor.size.width/10,cv::Scalar(255,255,0),-1);
-        Eigen::Vector3d predicted_track;
-        predicted_track << predicted_enemy.head(3);
-        cv::Point2f p = AS.imu2pixel(predicted_track);
-        cv::circle(m_a,p,matched_armor.size.width/15,cv::Scalar(0,0,255),-1);
-        cv::imshow("DRAW_MATCH_ARMOR",m_a);
-#endif
         enemy_armor = matched_armor;
     }
 
@@ -205,7 +195,7 @@ bool ArmorTracker::estimateEnemy(double dt)
                                     enemy_armor.world_position,
                                     predicted_position))
         {
-            return false;
+            std::cerr<<"[predict value illegal!!! Fix in origin value]"<<std::endl;
         }
 		////////////////Singer predictor//////////////////////////////
         bullet_point = AS.airResistanceSolve(predicted_position);
@@ -230,8 +220,8 @@ bool ArmorTracker::estimateEnemy(double dt)
                                     enemy_armor.world_position,
                                     predicted_position))
         {
-            return false;
-        }
+			std::cerr<<"[predict value illegal!!! Fix in origin value]"<<std::endl;
+		}
         ////////////////Singer predictor//////////////////////////////
 #ifdef SHOW_SINGER_PREDICT
         cv::Point2f pixelPos = AS.imu2pixel(bullet_point);
@@ -291,13 +281,9 @@ bool ArmorTracker::locateEnemy(const cv::Mat& src, std::vector<Armor> &armors, c
         {
             return false;
         }
-		
-//		bullet_point = AS.imu2cam(bullet_point);
-//		pitch = static_cast<int>((-atan2(bullet_point[1],bullet_point[2])/CV_PI*180 + AS.ab_pitch));
-//		yaw   = -atan2(bullet_point[0],bullet_point[2])/CV_PI*180 + AS.ab_yaw;
+        
 		pitch = static_cast<int>(atan2(bullet_point[2],bullet_point[1])/CV_PI*180);
         yaw = -atan2(bullet_point[0],bullet_point[1])/CV_PI*180;
-//		round(x2*1000)/1000);
         return true;
     }
 }

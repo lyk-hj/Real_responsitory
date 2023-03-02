@@ -104,11 +104,8 @@ Eigen::Vector3d AngleSolve::cam2imu(Vector3d &cam_pos)
 {
     //imu:roll pitch yaw
     Vector3d pos_tmp;
-    if (self_type == "omni_infantry")
-	{
-		pos_tmp = {cam_pos[0],cam_pos[2],-cam_pos[1]};
-	}
-    else if (self_type == "hero")
+    if (self_type == "omni_infantry" ||
+    	self_type == "hero")
 	{
 		pos_tmp = {cam_pos[0],cam_pos[2],-cam_pos[1]};
 	}
@@ -125,11 +122,8 @@ Eigen::Vector3d AngleSolve::imu2cam(Vector3d &imu_pos)
     Vector3d cam_pos;
     tmp_pos = RotationMatrix_imu.inverse()*imu_pos;
 	tmp_pos -=center_offset_position;
-	if (self_type == "omni_infantry")
-	{
-		cam_pos = {tmp_pos[0],-tmp_pos[2],tmp_pos[1]};
-	}
-	else if(self_type == "hero")
+	if (self_type == "omni_infantry"||
+		self_type == "hero")
 	{
 		cam_pos = {tmp_pos[0],-tmp_pos[2],tmp_pos[1]};
 	}
@@ -264,8 +258,6 @@ imshow("pnp",pnp);
 //    std::cout<<"m_ru:"<<m_ru<<std::endl;
 //    std::cout<<"m_rd:"<<m_rd<<std::endl;
 #endif
-//    // offset++
-//   std::cout<<"distance:   "<<tv.norm()<<std::endl;
 
     return tv;
 }
