@@ -6,7 +6,8 @@ small_w: 0.135
 small_h: 0.057
 buff_w: 0
 buff_h: 0
-self_type: omni_infantry
+#omni_infantry是全向轮，hero是英雄，balance_infantry是平步
+self_type: omni_infantry  #不同机器人的参数不一样，只需要改这里对应的名称
 
 omni_infantry:
   F_MAT: !!opencv-matrix
@@ -45,4 +46,23 @@ hero:
     cols: 1
     dt: d
     data: [ -0.078 , 0.26 , 0.0205 ]
+
+balance_infantry:
+  F_MAT: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [ 1579.60532    , 0.000000000000, 627.56545     ,
+            0.000000000000, 1579.86788    , 508.65311     ,
+            0.000000000000, 0.000000000000, 1.000000000000 ]
+    C_MAT: !!opencv-matrix
+      rows: 1
+      cols: 5
+      dt: d
+      data: [ -0.09082 , 0.22923 , -0.00020 , 0.00013 , 0.00000 ]
+    center_offset_position: !!opencv-matrix
+      rows: 3
+      cols: 1
+      dt: d
+      data: [ 0 , 0.125 , -0.02 ]
 #595 6mm
