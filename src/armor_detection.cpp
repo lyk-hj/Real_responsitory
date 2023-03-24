@@ -4,7 +4,6 @@
 //#define DRAW_LIGHTS_CONTOURS
 //#define DRAW_LIGHTS_RRT
 #define SHOW_NUMROI
-//#define DEBUG_DNN_PRINT
 //#define DRAW_ARMORS_RRT
 //#define DRAW_FINAL_ARMOR_S_CLASS
 //#define SHOW_TIME
@@ -53,22 +52,16 @@ ArmorDetector::ArmorDetector()
     thresh_confidence = (double)fs["thresh_confidence"];
 	//enemy_color
     enemy_color = COLOR(((string)fs["enemy_color"]));
+    //categories
+    categories = (int)fs["categories"];
 
     fs.release();
 }
 
 void ArmorDetector::setImage(const Mat &src)
 {
-//    _src = src.clone();
-//    showSrc = src.clone();
     src.copyTo(_src);
     src.copyTo(showSrc);
-//    size_t size = src.rows*src.cols*src.channels();
-//    _src = Mat(src.size(),src.type());
-//    showSrc = Mat(src.size(),src.type());
-//    _src = new
-//    memcpy(_src.data,src.data,size);
-//    memcpy(showSrc.data,src.data,size);
     //二值化
     Mat gray;
     cvtColor(_src,gray,COLOR_BGR2GRAY);
@@ -249,7 +242,7 @@ void ArmorDetector::matchLights()
                         armor.type = SMALL;
                     else
                         armor.type = BIG;
-
+                    preImplement(armor);// put mat into numROIs
                     candidateArmors.emplace_back(armor);
 #ifdef DRAW_ARMORS_RRT
                     //cout<<"LightI_angle :   "<<lightI.angle<<"   LightJ_angle :   "<<lightJ.angle<<"     "<<fabs(lightI.angle - lightJ.angle)<<endl;
@@ -287,44 +280,41 @@ void ArmorDetector::chooseTarget()
     else if(candidateArmors.size() == 1)
     {
         //cout<<"get 1 target!!"<<endl;
-        detectNum(candidateArmors[0]);
-        if(candidateArmors[0].confidence < thresh_confidence)
-		{
-#ifdef DEBUG_DNN_PRINT
-			std::cout<<"confidence"<<candidateArmors[0].confidence<<std::endl;
-			std::cout<<"Num_ID:"<<candidateArmors[0].id<<std::endl;
-#endif
-			return;
-		}
-        if(candidateArmors[0].id == 2 || candidateArmors[0].id == 0)
+        Mat out_blobs = dnnDetect.net_forward(numROIs);
+        float *outs = (float*)out_blobs.data;
+        if (get_max(outs, candidateArmors[0].confidence, candidateArmors[0].id))
         {
-            return;
+            //todo: 肯定是得有开火目标的距离限制的，图像上即装甲板的大小，不能说很远的目标看到了也打，浪费子弹，特别是哨兵自动开火
+            finalArmors.emplace_back(candidateArmors[0]);
         }
-        finalArmors.emplace_back(candidateArmors[0]);
     }
     else
     {
         //cout<<"get "<<candidateArmors.size()<<" target!!"<<endl;
 
-        sort(candidateArmors.begin(),candidateArmors.end(),
-             [](Armor &candidate1,Armor &candidate2){
-            return candidate1.size.height > candidate2.size.height;});
+        // dnn implement
+        Mat out_blobs = dnnDetect.net_forward(numROIs);
+        float *outs = (float*)out_blobs.data;
 
         // 获取每个候选装甲板的id和type
-
-        for(int i = 0; i < candidateArmors.size(); ++i) {
-            detectNum(candidateArmors[i]);
-            if(candidateArmors[i].confidence < thresh_confidence)
-			{
-#ifdef DEBUG_DNN_PRINT
-				std::cout<<"confidence:"<<candidateArmors[0].confidence<<std::endl;
-				std::cout<<"Num_ID:"<<candidateArmors[0].id<<std::endl;
-#endif
-				continue;
-			}
-            if (candidateArmors[i].id == 2 || candidateArmors[i].id == 0)
+        for(int i=0;i<candidateArmors.size();i++) {
+            // numROIs has identical size as candidateArmors
+            if (!get_max(outs, candidateArmors[i].confidence, candidateArmors[i].id))
+            {
+                outs+=categories;
                 continue;
-
+            }
+#ifdef SHOW_NUMROI
+            cv::Mat numDst;
+            resize(numROIs[i],numDst,Size(200,300));
+            //        printf("%d",armor.id);
+            imshow("number_show",numDst);
+            //        std::cout<<"number:   "<<armor.id<<"   type:   "<<armor.type<<std::endl;
+            //        string file_name = "../data/"+std::to_string(0)+"_"+std::to_string(cnt_count)+".jpg";
+            //        cout<<file_name<<endl;
+            //        imwrite(file_name,numDst);
+            //        cnt_count++;
+#endif
             // 装甲板中心点在屏幕中心部分，在中心部分中又是倾斜最小的，
             // 如何避免频繁切换目标：缩小矩形框就是跟踪到了，一旦陀螺则会目标丢失，
             // UI界面做数字选择，选几就是几号，可能在切换会麻烦，（不建议）
@@ -347,6 +337,7 @@ void ArmorDetector::chooseTarget()
             {
                 finalArmors.emplace_back(candidateArmors[i]);
             }
+            outs+=categories;
         }
     }
 
@@ -380,10 +371,10 @@ vector<Armor> ArmorDetector::autoAim(const cv::Mat &src)
     else
         binThresh = 100;
     //init
+    if(!numROIs.empty())numROIs.clear();
     if(!finalArmors.empty())finalArmors.clear();
     if(!candidateArmors.empty())candidateArmors.clear();
     if(!candidateLights.empty())candidateLights.clear();
-
     //do autoaim task
 #ifdef SHOW_TIME
     auto start = std::chrono::high_resolution_clock::now();
@@ -416,7 +407,7 @@ vector<Armor> ArmorDetector::autoAim(const cv::Mat &src)
     return finalArmors;
 }
 
-void ArmorDetector::detectNum(Armor& armor)
+void ArmorDetector::preImplement(Armor& armor)
 {
     Mat numDst;
     Mat num;
@@ -446,6 +437,7 @@ void ArmorDetector::detectNum(Armor& armor)
 
     // Get ROI
     numDst = numDst(cv::Rect(cv::Point((warp_width - roi_size.width) / 2, 0), roi_size));
+    dnnDetect.img_processing(numDst, numROIs);
 #ifdef SHOW_TIME
     auto start = std::chrono::high_resolution_clock::now();
     dnn_detect(numDst, armor);
@@ -454,23 +446,9 @@ void ArmorDetector::detectNum(Armor& armor)
     printf("dnn_time:%lf\n",duration);
 	putText(showSrc, to_string(duration),Point(10,100),2,3,Scalar(0,0,255));
 #else
-	dnn_detect(numDst, armor);
+//	dnn_detect(numDst, armor);
 #endif
-#ifdef SHOW_NUMROI
-    if ((armor.id!=0)&&(armor.confidence > thresh_confidence))
-    {
-        resize(numDst,numDst,Size(200,300));
-        cvtColor(numDst, numDst, cv::COLOR_RGB2GRAY);
-        threshold(numDst, numDst, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-//        printf("%d",armor.id);
-        imshow("number_show",numDst);
-//        std::cout<<"number:   "<<armor.id<<"   type:   "<<armor.type<<std::endl;
-//        string file_name = "../data/"+std::to_string(0)+"_"+std::to_string(cnt_count)+".jpg";
-//        cout<<file_name<<endl;
-//        imwrite(file_name,numDst);
-//        cnt_count++;
-    }
-#endif
+
 }
 
 bool ArmorDetector::conTain(RotatedRect &match_rect,vector<Light> &Lights, size_t &i, size_t &j)
@@ -508,8 +486,9 @@ int ArmorDetector::armorGrade(const Armor& checkArmor)
     ////////end///////////////////////////////////
 
     /////////最大装甲板板打分项目/////////////////////
-    // 最大装甲板，用面积，找一个标准值（固定距离（比如3/4米），装甲板大小（Armor.area）大约是多少，分大小装甲板）
+    // 最大装甲板找一个标准值（固定距离（比如3/4米），装甲板大小（Armor.area）大约是多少，分大小装甲板）
     // 比标准大就是100，小就是做比例，，，，可能小的得出来的值会很小
+    //todo: 这里其实可以做一个目标距离合理与否的开火限制
     int height_grade;
     double hRotation = checkArmor.size.height / height_standard;
     if(candidateArmors.size()==1)  hRotation=1;
@@ -534,9 +513,22 @@ int ArmorDetector::armorGrade(const Armor& checkArmor)
     return final_grade;
 }
 
-void ArmorDetector::dnn_detect(cv::Mat frame, Armor& armor)// 调用该函数即可返回数字ID
+bool ArmorDetector::get_max(const float *data, float &confidence, int &id)
 {
-    return dnnDetect.net_forward(dnnDetect.img_processing(std::move(frame)), armor.id, armor.confidence);
+    confidence = data[0];
+    id = 0;
+    for (int i=0;i<categories;i++)
+    {
+        if (data[i] > confidence)
+        {
+            confidence = data[i];
+            id = i;
+        }
+    }
+    if(id == 0 || id == 2 || confidence < thresh_confidence)
+        return false;
+    else
+        return true;
 }
 
 //}

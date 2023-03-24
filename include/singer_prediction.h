@@ -34,8 +34,6 @@ class Skalman
     Eigen::Matrix<double, 2, 2> Sk;//根据观测方程算出来的新息协方差
 public:
     double T = 0;//采样周期T，即前后两次预测帧相隔的时间
-    double last_x1 = 0;
-    double last_x2 = 0;
     double last_x[2] = {0,0};
     Eigen::Vector3d predicted_xyz = {0,0,0};
     

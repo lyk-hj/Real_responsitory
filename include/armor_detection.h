@@ -51,7 +51,7 @@ struct Armor : public cv::RotatedRect    //装甲板结构体
     }
 
     cv::Point2f armor_pt4[4]; //左下角开始逆时针
-    double confidence;
+    float confidence;
     int id;  // 装甲板类别
     int grade;
     int type;  // 装甲板类型
@@ -73,6 +73,7 @@ public:
 private:
 	int binThresh;
 	int enemy_color=0;
+	int categories;
 
     //light_judge_condition
     double light_max_angle;
@@ -113,6 +114,7 @@ private:
     std::vector<Light> candidateLights; // 筛选的灯条
     std::vector<Armor> candidateArmors; // 筛选的装甲板
     std::vector<Armor> finalArmors;
+    std::vector<cv::Mat> numROIs;
     Armor finalArmor;  // 最终装甲板,已弃用
 
     DNN_detect dnnDetect;
@@ -131,9 +133,10 @@ private:
 
     int armorGrade(const Armor& checkArmor);
 
-    void detectNum(Armor& armor);
+    void preImplement(Armor& armor);
 
-    void dnn_detect(cv::Mat frame, Armor& armor);// 调用该函数即可返回数字ID
+    bool get_max(const float *data, float &confidence, int &id);
+
 };
 
 //}

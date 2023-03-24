@@ -22,6 +22,7 @@ near_grade_ratio: 0.2
 height_grade_ratio: 0.2
 grade_standard: 60
 
+categories: 9
 thresh_confidence: 0.80
 
 enemy_color: BLUE

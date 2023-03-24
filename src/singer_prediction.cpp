@@ -104,8 +104,8 @@ void Skalman::setXpos(const Eigen::Vector2d &Xpos)
 {
     Xk_1 << Xpos(0,0),0.1,0,
             Xpos(1,0),0.1,0;
-    last_x1 = Xpos(0,0);
-    last_x2 = Xpos(1,0);
+    last_x[0] = Xpos(0,0);
+    last_x[1] = Xpos(1,0);
 }
 
 void Skalman::PredictInit(const double &deleta_t)
@@ -245,8 +245,7 @@ bool Skalman::SingerPrediction(const double &dt,
 //    last_x2 = predicted_xyz[predict_x2];
 	last_x[0] = predicted_xyz[predict_x1];
 	last_x[1] = predicted_xyz[predict_x2];
-    
-//    predicted_position << predicted_x,predicted_y,predicted_z;
+
     predicted_position = predicted_xyz;
 	
 	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 2){

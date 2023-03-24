@@ -68,7 +68,7 @@ bool ArmorTracker::initial(std::vector<Armor> &find_armors)
     KF.initial_KF();
     enemy_armor.world_position = AS.pixel2imu(enemy_armor);
     KF.setXPost(enemy_armor.world_position);
-    Singer.setXpos({enemy_armor.world_position(0,0),enemy_armor.world_position(2,0)});
+    Singer.setXpos({enemy_armor.world_position(0,0),enemy_armor.world_position(1,0)});
 //    std::cout<<"track_initial"<<std::endl;
     return true;
 }
