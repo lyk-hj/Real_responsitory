@@ -282,7 +282,7 @@ void ArmorDetector::chooseTarget()
         //cout<<"get 1 target!!"<<endl;
         Mat out_blobs = dnnDetect.net_forward(numROIs);
         float *outs = (float*)out_blobs.data;
-        if (get_max(outs, candidateArmors[0].confidence, candidateArmors[0].id))
+        if (get_valid(outs, candidateArmors[0].confidence, candidateArmors[0].id))
         {
             //todo: 肯定是得有开火目标的距离限制的，图像上即装甲板的大小，不能说很远的目标看到了也打，浪费子弹，特别是哨兵自动开火
             finalArmors.emplace_back(candidateArmors[0]);
@@ -293,13 +293,21 @@ void ArmorDetector::chooseTarget()
         //cout<<"get "<<candidateArmors.size()<<" target!!"<<endl;
 
         // dnn implement
+#ifdef SHOW_TIME
+        auto start = std::chrono::high_resolution_clock::now();
         Mat out_blobs = dnnDetect.net_forward(numROIs);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = seconds_duration(end-start).count();
+        printf("dnn_time:%lf\n",duration);
+#else
+        Mat out_blobs = dnnDetect.net_forward(numROIs);
+#endif
         float *outs = (float*)out_blobs.data;
 
         // 获取每个候选装甲板的id和type
         for(int i=0;i<candidateArmors.size();i++) {
             // numROIs has identical size as candidateArmors
-            if (!get_max(outs, candidateArmors[i].confidence, candidateArmors[i].id))
+            if (!get_valid(outs, candidateArmors[i].confidence, candidateArmors[i].id))
             {
                 outs+=categories;
                 continue;
@@ -438,17 +446,6 @@ void ArmorDetector::preImplement(Armor& armor)
     // Get ROI
     numDst = numDst(cv::Rect(cv::Point((warp_width - roi_size.width) / 2, 0), roi_size));
     dnnDetect.img_processing(numDst, numROIs);
-#ifdef SHOW_TIME
-    auto start = std::chrono::high_resolution_clock::now();
-    dnn_detect(numDst, armor);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = seconds_duration(end-start).count();
-    printf("dnn_time:%lf\n",duration);
-	putText(showSrc, to_string(duration),Point(10,100),2,3,Scalar(0,0,255));
-#else
-//	dnn_detect(numDst, armor);
-#endif
-
 }
 
 bool ArmorDetector::conTain(RotatedRect &match_rect,vector<Light> &Lights, size_t &i, size_t &j)
@@ -526,6 +523,25 @@ bool ArmorDetector::get_max(const float *data, float &confidence, int &id)
         }
     }
     if(id == 0 || id == 2 || confidence < thresh_confidence)
+        return false;
+    else
+        return true;
+}
+
+bool ArmorDetector::get_valid(const float *data, float &confidence, int &id)
+{
+    id = 1;
+    int i=2;
+    confidence = data[i];
+    for (;i<categories;i++)
+    {
+        if (data[i] > confidence)
+        {
+            confidence = data[i];
+            id = i-1;
+        }
+    }
+    if(data[0] > data[1] || id == 2 || confidence < thresh_confidence)
         return false;
     else
         return true;
