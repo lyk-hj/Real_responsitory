@@ -12,10 +12,10 @@ form _send_data;
 Mat src;
 
 //two2three
-form send_data;
-Mat ka_src;
+//vector<double> vision_send(3);
 
-void* Build_Src(void* PARAM)
+
+void* Sample(void* PARAM)
 {
     int first_get/* = true*/;
 	chrono_time time_temp;
@@ -41,7 +41,7 @@ void* Build_Src(void* PARAM)
                 pthread_mutex_lock(&mutex_new);
                 {
                     get_src.copyTo(src);
-					_send_data = {0x21,first_get,
+					_send_data = {0x21,first_get, //! 0x21应该换成serial.vision_msg_.mode赋值，方便调试默认给的0x21
 								 {serial.vision_msg_.pitch,
 								  		serial.vision_msg_.yaw,
 								  		serial.vision_msg_.shoot},
@@ -75,8 +75,9 @@ void* Build_Src(void* PARAM)
 	}
 }
 
-void* Armor_Kal(void* PARAM)
+void* Implement(void* PARAM)
 {
+    //!< Task 1:Detection
     ArmorDetector Detect;
     std::vector<Armor> Targets;
 	Mat src_copy;
@@ -84,6 +85,11 @@ void* Armor_Kal(void* PARAM)
 	int mode_temp;
 	int second_get;
 
+	//!< Task 2:Track and Predict
+	vector<double> vdata(3);
+	ArmorTracker Track;
+
+	//!< 感觉可以不需要sleep，可以用一个Peterson's Algorithm来进行临界区互斥同步（猜想）
 	sleep(2);
 	printf("Armor_open\n");
 	while (is_continue)
@@ -93,7 +99,6 @@ void* Armor_Kal(void* PARAM)
 		while (!is_start) {
 
 			pthread_cond_wait(&cond_new, &mutex_new);
-
 		}
 		is_start = false;
 
@@ -103,81 +108,32 @@ void* Armor_Kal(void* PARAM)
         second_get = _send_data.dat_is_get;
         time_temp = _send_data.tim;
 		pthread_mutex_unlock(&mutex_new);
-        if(second_get)
+		if(second_get && mode_temp == 0x21)
         {
         	printf("[mode_temp]:    |%x\n",mode_temp);
-            if (mode_temp == 0x21)
+            Targets = Detect.autoAim(src_copy);
+//                    Track.AS.bullet_speed = 28.0;
+            if (Track.locateEnemy(src_copy,Targets,time_temp))
             {
-                Targets = Detect.autoAim(src_copy);
-                if(!Targets.empty())std::cout<<"------------[Get Targets]--------------"<<std::endl;
-                else 				std::cout<<"------------[No Targets]---------------"<<std::endl;
-                pthread_mutex_lock(&mutex_ka);
-                send_data = {mode_temp,
-							 second_get,
-							 {Detect.ab_pitch,Detect.ab_yaw,Detect.bullet_speed},
-							 {Detect.quaternion[0],Detect.quaternion[1],Detect.quaternion[2],Detect.quaternion[3]},
-							 Targets,
-							 time_temp};
-                src_copy.copyTo(ka_src);
-				is_ka = true;
-				pthread_cond_signal(&cond_ka);
-                pthread_mutex_unlock(&mutex_ka);
+                vdata = { Track.pitch, Track.yaw, 0x31 };
+                Track.show();
             }
+            else
+            {
+                //    原数据，无自瞄
+                vdata = { Track.AS.ab_pitch, Track.AS.ab_yaw, 0x32 };
+            }
+            serial.SenderMain(vdata);
+//            pthread_mutex_lock(&mutex_send);
+//            vision_send = vdata;
+//            is_send = true;
+//            pthread_cond_signal(&cond_send);
+//            pthread_mutex_unlock(&mutex_send);
         }
 
 
 	}
 }
 
-void* Kal_predict(void* PARAM)
-{
-	vector<double> vdata(3);
-	vector<Armor> armors;
-    ArmorTracker Track;
-	int mode_temp;
-	int angle_get;
-    chrono_time time_temp;
-    Mat src_copy;
-
-    sleep(3);
-    printf("kal_open\n");
-	while (is_continue)
-	{
-		pthread_mutex_lock(&mutex_ka);
-
-		while (!is_ka) {
-
-			pthread_cond_wait(&cond_ka, &mutex_ka);
-		}
-
-		is_ka = false;
-
-		ka_src.copyTo(src_copy);
-        Track.AS.updateData(send_data.data,send_data.quat);
-		angle_get = send_data.dat_is_get;
-		mode_temp = send_data.mode;
-        armors = send_data.armors;
-        time_temp = send_data.tim;
-        pthread_mutex_unlock(&mutex_ka);
-		if(angle_get)
-		{
-			if (mode_temp == 0x21)
-			{
-                Track.AS.bullet_speed = 28.0;
-				if (Track.locateEnemy(src_copy,armors,time_temp))
-				{
-                    vdata = { Track.pitch, Track.yaw, 0x31 };
-					Track.show();
-				}
-				else
-				{
-                     //    原数据，无自瞄
-					vdata = { Track.AS.ab_pitch, Track.AS.ab_yaw, 0x32 };
-				}
-				serial.SenderMain(vdata);
-			}
-		}
-	}
-}
 
 

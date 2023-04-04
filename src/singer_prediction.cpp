@@ -12,11 +12,12 @@ Skalman::Skalman()
          0, 5e-4;
 
     //init Xk_1
-    Xk_1 << 0,0.1,0,
-            0,0.1,0;
+//    Xk_1 << 0,0.1,0,
+//            0,0.1,0;
 
     //init Xk
-//    Xk = Xk_1;
+    Xk << 0,0.1,0,
+          0,0.1,0;
 
     //init P
     double r11 = R(0,0);
@@ -37,7 +38,7 @@ Skalman::Skalman()
     Zk << 0.1,0.1;
 
     //init lamda
-    Vk = Zk - H*Xk_1;
+    Vk = Zk - H*Xk;
     _Sk = 0.5*Vk*Vk.transpose();
     Sk = H*P*H.transpose() + R;
     lamda = std::max(1.,_Sk.trace()/Sk.trace());
@@ -47,11 +48,12 @@ Skalman::Skalman()
 void Skalman::Reset()
 {
     //init Xk_1
-    Xk_1 << 0,0.1,0,
-            0,0.1,0;
+//    Xk_1 << 0,0.1,0,
+//            0,0.1,0;
 
     //init Xk
-//    Xk = Xk_1;
+    Xk << 0,0.1,0,
+          0,0.1,0;
 
     //init P
     double r11 = R(0,0);
@@ -76,10 +78,10 @@ void Skalman::Reset()
 void Skalman::Reset(const Eigen::Vector2d &Xpos)
 {
     //init Xk_1
-	setXpos(Xpos);
+//	setXpos(Xpos);
 
     //init Xk
-//    Xk = Xk_1;
+    setXpos(Xpos);
 
     //init P
     double r11 = R(0,0);
@@ -102,8 +104,8 @@ void Skalman::Reset(const Eigen::Vector2d &Xpos)
 
 void Skalman::setXpos(const Eigen::Vector2d &Xpos)
 {
-    Xk_1 << Xpos(0,0),0.1,0,
-            Xpos(1,0),0.1,0;
+    Xk << Xpos(0,0),0.1,0,
+          Xpos(1,0),0.1,0;
     last_x[0] = Xpos(0,0);
     last_x[1] = Xpos(1,0);
 }
@@ -192,6 +194,7 @@ Eigen::Matrix<double,6,1> Skalman::predict(bool predict)
     }
     Xk_1 = F*Xk + G*_a;
     //        std::cout<<"predictData:"<<Xk_1<<std::endl;
+
     return Xk_1;
 }
 
@@ -203,11 +206,11 @@ Eigen::Matrix<double,6,1> Skalman::correct(const Eigen::Matrix<double,2,1> &meas
     Sk = H*P*H.transpose() + R;
     lamda = std::max(1.,_Sk.trace()/Sk.trace());
 //    std::cout<<"lamda:"<<lamda<<std::endl;
-    P = lamda*((F * P * F.transpose()) + W);
+    P = lamda*(F * P * F.transpose()) + W;
     K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
     Xk = Xk_1 + K * (Zk - H * Xk_1);
     P = (Eigen::Matrix<double, 6, 6>::Identity() - K * H) * P;
-    return Xk_1;
+    return Xk;
 }
 
 bool Skalman::SingerPrediction(const double &dt,
@@ -223,32 +226,25 @@ bool Skalman::SingerPrediction(const double &dt,
 	
 	Eigen::Matrix<double,2,1> measure(round(x1*1000)/1000,
                                       round(x2*1000)/1000);
-    double all_time = SHOOT_DELAY + fly_time;
     //! state transition
     PredictInit(dt);
     predict(false);
     correct(measure);
     //! predictor work
+    double all_time = shoot_delay + fly_time;
     PredictInit(all_time);
     Eigen::Matrix<double,6,1> predicted_result = predict(true);
     //std::cout<<"result:"<<predicted_result<<std::endl;
     //! filter for result, inhibit infinite change
-//    double predicted_x = predicted_result(0,0);
-//    double predicted_y = predicted_result(3,0);//no need to calculate with filter
-//    double predicted_z = imu_position(2,0);
     predicted_xyz[predict_x1] = filter(last_x[0],predicted_result(0,0),x1);
     predicted_xyz[predict_x2] = filter(last_x[1],predicted_result(3,0),x2);
     predicted_xyz[constant_x] = imu_position(constant_x,0);
-//    predicted_x = filter(last_x1,predicted_x,x1);
-//    predicted_y = filter(last_x2,predicted_y,x2);
-//    last_x1 = predicted_xyz[predict_x1];
-//    last_x2 = predicted_xyz[predict_x2];
 	last_x[0] = predicted_xyz[predict_x1];
 	last_x[1] = predicted_xyz[predict_x2];
 
     predicted_position = predicted_xyz;
 	
-	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 2){
+	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 2 || lamda > 6){
 		predicted_position = imu_position;
         return false;
     }
