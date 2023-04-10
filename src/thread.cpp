@@ -136,5 +136,31 @@ void* Implement(void* PARAM)
 	}
 }
 
+//void* Send(void* PARAM)
+//{
+//	vector<double> vdata(3);
+//	int mode_temp;
+//	int data_get;
+//
+//    sleep(3);
+//    printf("send_open\n");
+//	while (is_continue)
+//	{
+//		pthread_mutex_lock(&mutex_send);
+//
+//		while (!is_send) {
+//
+//			pthread_cond_wait(&cond_send, &mutex_send);
+//		}
+//
+//		is_send = false;
+//		vdata = vision_send;
+//        pthread_mutex_unlock(&mutex_send);
+//        if(data_get && mode_temp == 0x21)
+//		{
+//				serial.SenderMain(vdata);
+//		}
+//	}
+//}
 
 
