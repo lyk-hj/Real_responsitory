@@ -17,6 +17,7 @@ class Skalman
     double Sigmaq = 0.01;//目标加速度标准差，Singer模型假设目标加速度符合均值为零的高斯分布
     double initT = 0.01;//用来初始化初始协方差矩阵的采样时间间隔（估算出来的）
     double lamda;//渐消因子，减小滤波发散问题
+    double rk;//卡方检验方差
     Eigen::Matrix<double, 6, 6> F;//状态转移矩阵
     Eigen::Matrix<double, 6, 6> W;//预测方程过程噪声
     Eigen::Matrix<double, 6, 1> Xk_1;//转移的状态

@@ -104,8 +104,10 @@ void Skalman::Reset(const Eigen::Vector2d &Xpos)
 
 void Skalman::setXpos(const Eigen::Vector2d &Xpos)
 {
-    Xk << Xpos(0,0),0.1,0,
-          Xpos(1,0),0.1,0;
+//    Xk << Xpos(0,0),0.1,0,
+//          Xpos(1,0),0.1,0;
+    Xk(0,0) = Xpos(0,0);
+    Xk(3,0) = Xpos(1,0);
     last_x[0] = Xpos(0,0);
     last_x[1] = Xpos(1,0);
 }
@@ -202,10 +204,14 @@ Eigen::Matrix<double,6,1> Skalman::correct(const Eigen::Matrix<double,2,1> &meas
 {
     Zk = measure;
     Vk = Zk - H*Xk_1;
+    //    rk = Vk.transpose()*(F*P*F.transpose() + W)
     _Sk = (lamda*Vk*Vk.transpose())/(1+lamda);
-    Sk = H*P*H.transpose() + R;
+    Sk = H*(F*P*F.transpose() + W)*H.transpose() + R;
+    rk = Vk.transpose()*Sk.inverse()*Vk;
+    printf("[rk    ]:%lf\n",rk);
+//    Sk = H*P*H.transpose() + R;
     lamda = std::max(1.,_Sk.trace()/Sk.trace());
-//    std::cout<<"lamda:"<<lamda<<std::endl;
+//    std::cout<<"[lamda ]:"<<lamda<<std::endl;
     P = lamda*(F * P * F.transpose()) + W;
     K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
     Xk = Xk_1 + K * (Zk - H * Xk_1);
@@ -244,7 +250,7 @@ bool Skalman::SingerPrediction(const double &dt,
 
     predicted_position = predicted_xyz;
 	
-	if (!finite(predicted_position.norm()) || predicted_position.norm() - imu_position.norm() > 2 || lamda > 6){
+	if (!finite(predicted_position.norm()) || fabs(predicted_position.norm() - imu_position.norm()) > 1){
 		predicted_position = imu_position;
         return false;
     }

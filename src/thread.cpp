@@ -104,6 +104,7 @@ void* Implement(void* PARAM)
 
 		src.copyTo(src_copy);
         Detect.updateData(_send_data.data,_send_data.quat);
+        Track.AS.updateData(_send_data.data,_send_data.quat);
         mode_temp = _send_data.mode;
         second_get = _send_data.dat_is_get;
         time_temp = _send_data.tim;
