@@ -207,7 +207,8 @@ Eigen::Matrix<double,6,1> Skalman::correct(const Eigen::Matrix<double,2,1> &meas
     //    rk = Vk.transpose()*(F*P*F.transpose() + W)
     _Sk = (lamda*Vk*Vk.transpose())/(1+lamda);
     Sk = H*(F*P*F.transpose() + W)*H.transpose() + R;
-    rk = Vk.transpose()*Sk.inverse()*Vk;
+    rk = fabs(Vk.transpose()*Sk.inverse()*Vk);
+    rk = rk > 10 ? 10 : rk;
     printf("[rk    ]:%lf\n",rk);
 //    Sk = H*P*H.transpose() + R;
     lamda = std::max(1.,_Sk.trace()/Sk.trace());
@@ -262,7 +263,7 @@ double Skalman::filter(const double &last, const double &current, const double &
 {
 	double predicted_offset = last - origin;
 	double predicted_diff = current - last;
-	return (1-pow(TANH2(predicted_diff),2))*current+(pow(TANH2(predicted_diff),2))*
+	return (1-pow(TANH2(predicted_diff, rk),2))*current+(pow(TANH2(predicted_diff, rk),2))*
 	((1-pow(TANH_HALF(predicted_offset),2))*last+(pow(TANH_HALF(predicted_offset),2))*origin);
 }
 

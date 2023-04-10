@@ -6,7 +6,8 @@
 #include "robot_status.h"
 #include <cmath>
 
-#define TANH2(x) (exp(2.5*x)-exp(-2.5*x))/(exp(2.5*x)+exp(-2.5*x))
+//#define TANH2(x, rk) (exp(2.5*x)-exp(-2.5*x))/(exp(2.5*x)+exp(-2.5*x))
+#define TANH2(x, rk) (exp(rk*x)-exp(-rk*x))/(exp(rk*x)+exp(-rk*x))
 #define TANH_HALF(x) (exp(1.1*x)-exp(-1.1*x))/(exp(1.1*x)+exp(-1.1*x))
 
 //二维Singer模型
