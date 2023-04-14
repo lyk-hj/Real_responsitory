@@ -108,8 +108,8 @@ void Skalman::setXpos(const Eigen::Vector2d &Xpos)
 //          Xpos(1,0),0.1,0;
     Xk(0,0) = Xpos(0,0);
     Xk(3,0) = Xpos(1,0);
-    last_x[0] = Xpos(0,0);
-    last_x[1] = Xpos(1,0);
+    last_dx[0] = 0;
+    last_dx[1] = 0;
 }
 
 void Skalman::PredictInit(const double &deleta_t)
@@ -243,11 +243,11 @@ bool Skalman::SingerPrediction(const double &dt,
     Eigen::Matrix<double,6,1> predicted_result = predict(true);
     //std::cout<<"result:"<<predicted_result<<std::endl;
     //! filter for result, inhibit infinite change
-    predicted_xyz[predict_x1] = filter(last_x[0],predicted_result(0,0),x1);
-    predicted_xyz[predict_x2] = filter(last_x[1],predicted_result(3,0),x2);
+    predicted_xyz[predict_x1] = filter(last_dx[0],predicted_result(0,0),x1);
+    predicted_xyz[predict_x2] = filter(last_dx[1],predicted_result(3,0),x2);
     predicted_xyz[constant_x] = imu_position(constant_x,0);
-	last_x[0] = predicted_xyz[predict_x1];
-	last_x[1] = predicted_xyz[predict_x2];
+	last_dx[0] = predicted_xyz[predict_x1] - x1;
+	last_dx[1] = predicted_xyz[predict_x2] - x2;
 
     predicted_position = predicted_xyz;
 	
@@ -259,11 +259,12 @@ bool Skalman::SingerPrediction(const double &dt,
 	return true;
 }
 
-double Skalman::filter(const double &last, const double &current, const double &origin)
+double Skalman::filter(const double &last_d, const double &current, const double &origin)
 {
-	double predicted_offset = last - origin;
-	double predicted_diff = current - last;
-	return (1-pow(TANH2(predicted_diff, rk),2))*current+(pow(TANH2(predicted_diff, rk),2))*
-	((1-pow(TANH_HALF(predicted_offset),2))*last+(pow(TANH_HALF(predicted_offset),2))*origin);
+    double predicted_diff = current - origin;
+    double predicted_step = predicted_diff - last_d;
+    double real_diff = (1-pow(TANH2(predicted_step),2))*predicted_diff+(pow(TANH2(predicted_diff),2))*last_d;
+    double real_predict = origin+real_diff;
+	return (1-pow(TANH1(predicted_diff),2))*real_predict+(pow(TANH1(predicted_diff),2))*origin;
 }
 
