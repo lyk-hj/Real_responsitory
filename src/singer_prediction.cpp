@@ -108,6 +108,8 @@ void Skalman::setXpos(const Eigen::Vector2d &Xpos)
 //          Xpos(1,0),0.1,0;
     Xk(0,0) = Xpos(0,0);
     Xk(3,0) = Xpos(1,0);
+    x1 = Xk(0,0);
+    x2 = Xk(3,0);
     last_dx[0] = 0;
     last_dx[1] = 0;
 }
@@ -228,8 +230,8 @@ bool Skalman::SingerPrediction(const double &dt,
 	//mean of predicting 0 index and 1 index value, the value of index 2 is constant
 	int predict_x1=0,predict_x2=1,constant_x=2;
 	
-	double x1 = imu_position(predict_x1,0);
-	double x2 = imu_position(predict_x2,0);
+	x1 = imu_position(predict_x1,0) - x1 > 0.02 ? imu_position(predict_x1,0) : x1;
+	x2 = imu_position(predict_x2,0) - x2 > 0.02 ? imu_position(predict_x2, 0) : x2;
 	
 	Eigen::Matrix<double,2,1> measure(round(x1*1000)/1000,
                                       round(x2*1000)/1000);
